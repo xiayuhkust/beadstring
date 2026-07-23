@@ -207,3 +207,6 @@
 [data-theme="huiben"] .ctag { color: #a2621c; border-color: rgba(193,124,31,0.5); }
 [data-theme="huiben"] .tsubmit { background: none; box-shadow: none;
   border: 1px dashed rgba(193,124,31,0.6); color: #a2621c; }
+[data-theme="huiben"] .bmark.none::before { border-color: rgba(193,124,31,0.6); }
+[data-theme="huiben"] .bead.linkNew { color: #a2621c; background: none; box-shadow: none;
+  border: 1px dashed rgba(193,124,31,0.6); }

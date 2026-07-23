@@ -88,6 +88,13 @@
     background: radial-gradient(circle at 32% 30%, #ffe9c4, #d9a05a 70%);
     box-shadow: 0 0 4px rgba(245,205,138,0.5); }
   body.beadMode .bmark { display: inline-block; }
+  .bmark.none { opacity: 0.5; }
+  .bmark.none::before { background: none; border: 1px solid rgba(245,205,138,0.6);
+    box-shadow: none; box-sizing: border-box; }
+  .bead.linkNew { display: block; width: 100%; text-align: center; cursor: pointer;
+    font-family: inherit; color: #f5cd8a; font-size: 0.82rem; letter-spacing: 0.1em;
+    background: none; border: 1px dashed rgba(245,205,138,0.45); }
+  .bead.linkNew:hover { border-color: rgba(245,205,138,0.8); }
   #pkTitle .tpill { display: inline-flex; align-items: center; gap: 0.55em;
     font-size: 1.0rem; letter-spacing: 0.15em; opacity: 1;
     background: rgba(247,236,217,0.12); border: 1px solid rgba(245,205,138,0.6);
@@ -331,7 +338,7 @@ function render() {
     const list = beadsAt[v];
     if (list) div.classList.add('hasBead');
     div.innerHTML = `<span class="vn">${v}</span>${t}` +
-      (list ? `<span class="bmark">${list.length}</span>` : '');
+      (list ? `<span class="bmark">${list.length}</span>` : '<span class="bmark none">＋</span>');
     box.appendChild(div);
     v++;
   }
@@ -383,7 +390,46 @@ $('nextBtn').addEventListener('click', () => step(1));
 
 // ================================================================ picker
 
+
+// ---- create a bead: join the current verse to another place (book -> chapter -> verse) ----
+let pickTarget = false, linkFrom = null;
+function startLink(v) {
+  linkFrom = R.bk + R.ch + ':' + v;
+  closeSheet();
+  openPicker();
+  pickTarget = true;
+  $('pkTitle').innerHTML = '<span class="tpill">Ligar a · Escolha um Livro</span>';
+}
+function showVerses(b, c) {
+  const full = window.BOOKFULL || {};
+  $('pkTitle').innerHTML = '<span class="tpill">' + (full[b] || b) + ' ' + c +
+    '</span><span class="pkback">escolha o versículo</span>';
+  const g = $('pkChs');
+  let n = 0;
+  while (window.VERSES && window.VERSES[b + c + ':' + (n + 1)] !== undefined) n++;
+  g.style.display = 'grid';
+  g.innerHTML = Array.from({ length: n }, (_, i) =>
+    `<div class="pk" data-vb="${b}" data-vc="${c}" data-vv="${i + 1}">${i + 1}</div>`).join('');
+}
+function finishLink(b, c, v) {
+  const target = b + c + ':' + v;
+  const myCh = linkFrom.split(':')[0], tCh = b + c;
+  if (myCh === tCh) { alert('As duas pontas estão no mesmo capítulo — escolha outro.'); return; }
+  let dup = 0;
+  if (beadsReady()) {
+    for (const r of window.BEADS) {
+      if ((r[0] === myCh && r[1] === tCh) || (r[0] === tCh && r[1] === myCh)) { dup = r[3] || 1; break; }
+    }
+  }
+  if (dup && !confirm('TSK já enfia estes dois capítulos (' + dup + ' registros no nível do versículo) — vale ver a lista. Atar seu próprio fio mesmo assim?')) {
+    pickTarget = false; $('picker').classList.remove('on'); return;
+  }
+  pickTarget = false;
+  location.href = 'index.html?a=' + encodeURIComponent(linkFrom) +
+    '&b=' + encodeURIComponent(target) + '&v=0&n=0&back=du';
+}
 function openPicker() {
+  pickTarget = false;
   const full = window.BOOKFULL || {};
   $('pkTitle').innerHTML = '<span class="tpill">Escolha um Livro</span>';
   $('pkChs').style.display = 'none';
@@ -436,6 +482,8 @@ $('pkBooks').addEventListener('click', (e) => {
 $('pkChs').addEventListener('click', (e) => {
   const el = e.target.closest('.pk');
   if (!el) return;
+  if (el.dataset.vv) { finishLink(el.dataset.vb, Number(el.dataset.vc), Number(el.dataset.vv)); return; }
+  if (pickTarget) { showVerses(el.dataset.b, Number(el.dataset.c)); return; }
   $('picker').classList.remove('on');
   goto(el.dataset.b, Number(el.dataset.c));
 });
@@ -482,7 +530,9 @@ function openSheet(v) {
   const K = R.bk + R.ch;
   $('sheetTitle').innerHTML =
     `${full[R.bk] || R.bk} ${R.ch}:${v} · ${list.length} conta${list.length > 1 ? 's' : ''}<br>` +
-    `<span style="opacity:0.6">fios traçados daqui por dois séculos de enfiadores</span>`;
+    `<span style="opacity:0.6">${list.length
+      ? 'fios traçados daqui por dois séculos de enfiadores'
+      : 'ainda não há contas neste versículo — você poderia atar o primeiro fio'}</span>`;
   $('sheetList').innerHTML = list.map(r => {
     const mine = r[0] === K;
     const myV = mine ? r[4] : r[5];
@@ -498,6 +548,9 @@ function openSheet(v) {
       (done ? ' · <span class="strung">enfiada · revisitar</span>' : '') + `</div>
     </a>`;
   }).join('');
+  $('sheetList').insertAdjacentHTML('beforeend',
+    '<button class="bead linkNew">＋ Ligar Este Versículo a Outro Lugar…</button>');
+  $('sheetList').querySelector('.linkNew').addEventListener('click', () => startLink(v));
   $('sheet').classList.add('on');
   $('sheetMask').classList.add('on');
 }

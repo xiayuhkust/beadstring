@@ -88,6 +88,13 @@
     background: radial-gradient(circle at 32% 30%, #ffe9c4, #d9a05a 70%);
     box-shadow: 0 0 4px rgba(245,205,138,0.5); }
   body.beadMode .bmark { display: inline-block; }
+  .bmark.none { opacity: 0.5; }
+  .bmark.none::before { background: none; border: 1px solid rgba(245,205,138,0.6);
+    box-shadow: none; box-sizing: border-box; }
+  .bead.linkNew { display: block; width: 100%; text-align: center; cursor: pointer;
+    font-family: inherit; color: #f5cd8a; font-size: 0.82rem; letter-spacing: 0.1em;
+    background: none; border: 1px dashed rgba(245,205,138,0.45); }
+  .bead.linkNew:hover { border-color: rgba(245,205,138,0.8); }
   #pkTitle .tpill { display: inline-flex; align-items: center; gap: 0.55em;
     font-size: 1.0rem; letter-spacing: 0.15em; opacity: 1;
     background: rgba(247,236,217,0.12); border: 1px solid rgba(245,205,138,0.6);
@@ -331,7 +338,7 @@ function render() {
     const list = beadsAt[v];
     if (list) div.classList.add('hasBead');
     div.innerHTML = `<span class="vn">${v}</span>${t}` +
-      (list ? `<span class="bmark">${list.length}</span>` : '');
+      (list ? `<span class="bmark">${list.length}</span>` : '<span class="bmark none">＋</span>');
     box.appendChild(div);
     v++;
   }
@@ -385,7 +392,46 @@ $('nextBtn').addEventListener('click', () => step(1));
 
 // ================================================================ 选卷/章
 
+
+// ---- 自创珠：把当前节连到另一处（选卷→选章→选节；同章拒绝；TSK 已有此章对则提示）----
+let pickTarget = false, linkFrom = null;
+function startLink(v) {
+  linkFrom = R.bk + R.ch + ':' + v;
+  closeSheet();
+  openPicker();
+  pickTarget = true;
+  $('pkTitle').innerHTML = '<span class="tpill">连 到 · 选 卷</span>';
+}
+function showVerses(b, c) {
+  const full = window.BOOKFULL || {};
+  $('pkTitle').innerHTML = '<span class="tpill">' + (full[b] || b) + ' ' + c +
+    '</span><span class="pkback">点选那一节</span>';
+  const g = $('pkChs');
+  let n = 0;
+  while (window.VERSES && window.VERSES[b + c + ':' + (n + 1)] !== undefined) n++;
+  g.style.display = 'grid';
+  g.innerHTML = Array.from({ length: n }, (_, i) =>
+    `<div class="pk" data-vb="${b}" data-vc="${c}" data-vv="${i + 1}">${i + 1}</div>`).join('');
+}
+function finishLink(b, c, v) {
+  const target = b + c + ':' + v;
+  const myCh = linkFrom.split(':')[0], tCh = b + c;
+  if (myCh === tCh) { alert('两端在同一章里——请选另一章。'); return; }
+  let dup = 0;
+  if (beadsReady()) {
+    for (const r of window.BEADS) {
+      if ((r[0] === myCh && r[1] === tCh) || (r[0] === tCh && r[1] === myCh)) { dup = r[3] || 1; break; }
+    }
+  }
+  if (dup && !confirm('这对章节在 TSK 里已有串珠（' + dup + ' 条节级记录）——列表里可先看看。仍要结你自己的线吗？')) {
+    pickTarget = false; $('picker').classList.remove('on'); return;
+  }
+  pickTarget = false;
+  location.href = 'index.html?a=' + encodeURIComponent(linkFrom) +
+    '&b=' + encodeURIComponent(target) + '&v=0&n=0&back=du';
+}
 function openPicker() {
+  pickTarget = false;
   const full = window.BOOKFULL || {};
   $('pkTitle').innerHTML = '<span class="tpill">选 卷</span>';
   $('pkChs').style.display = 'none';
@@ -439,6 +485,8 @@ $('pkBooks').addEventListener('click', (e) => {
 $('pkChs').addEventListener('click', (e) => {
   const el = e.target.closest('.pk');
   if (!el) return;
+  if (el.dataset.vv) { finishLink(el.dataset.vb, Number(el.dataset.vc), Number(el.dataset.vv)); return; }
+  if (pickTarget) { showVerses(el.dataset.b, Number(el.dataset.c)); return; }
   $('picker').classList.remove('on');
   goto(el.dataset.b, Number(el.dataset.c));
 });
@@ -487,7 +535,9 @@ function openSheet(v) {
   const K = R.bk + R.ch;
   $('sheetTitle').innerHTML =
     `${full[R.bk] || R.bk} ${R.ch}:${v} · ${list.length} 颗珠<br>` +
-    `<span style="opacity:0.6">两百年前的串珠人，从这里连出去的线</span>`;
+    `<span style="opacity:0.6">${list.length
+      ? '两百年前的串珠人，从这里连出去的线'
+      : '这节还没有珠——你可以结第一根线'}</span>`;
   $('sheetList').innerHTML = list.map(r => {
     const mine = r[0] === K;
     const myV = mine ? r[4] : r[5];
@@ -503,6 +553,9 @@ function openSheet(v) {
       (done ? ' · <span class="strung">已串 · 重访</span>' : '') + `</div>
     </a>`;
   }).join('');
+  $('sheetList').insertAdjacentHTML('beforeend',
+    '<button class="bead linkNew">＋ 把 这 节 连 到 别 处 …</button>');
+  $('sheetList').querySelector('.linkNew').addEventListener('click', () => startLink(v));
   $('sheet').classList.add('on');
   $('sheetMask').classList.add('on');
 }
