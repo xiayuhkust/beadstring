@@ -172,6 +172,9 @@
   .dlBead .tx { display: none; line-height: 2; padding: 0.1em 0 0.5em 1.75em; opacity: 0.95; }
   .dlBead.open .tx { display: block; }
   #dlMyReason { max-width: 30em; margin: 0.8em auto 0.2em; opacity: 0.9; }
+  .dlBody { max-width: 34em; margin: 0.9em auto; text-align: left; line-height: 2.1;
+    font-size: 0.92rem; }
+  .dlRefs { opacity: 0.55; letter-spacing: 0.05em; }
   .dlLink { display: block; width: 100%; text-align: center; cursor: pointer;
     font-family: inherit; color: #f5cd8a; font-size: 0.78rem; letter-spacing: 0.1em;
     background: none; border: 1px dashed rgba(245,205,138,0.45); border-radius: 10px;
@@ -635,12 +638,7 @@ function dlDateLabel(st) {
     (st.done ? ' · repaso' : '');
 }
 function dlRefresh(st, chain) {
-  const opened = st.done ? chain.length
-    : chain.filter((_, i) => st.open && st.open[i]).length;
-  document.querySelectorAll('#dlChain .dlBead').forEach((el, i) => {
-    el.classList.toggle('open', !!(st.done || (st.open && st.open[i])));
-  });
-  $('dlWrite').style.display = (!st.done && opened === chain.length) ? '' : 'none';
+  $('dlWrite').style.display = st.done ? 'none' : '';
   $('dlReview').style.display = st.done ? '' : 'none';
   if (st.done) $('dlMyReason').textContent = st.reason ? '“' + st.reason + '”' : '';
   $('dlDate').textContent = dlDateLabel(st);
@@ -655,23 +653,9 @@ function openDaily() {
   if (!lead || !chain.length) return;
   $('dlLead').innerHTML = dlText(lead) +
     '<span class="src">' + dlLabel(lead, true) + '</span>';
-  $('dlChain').innerHTML = chain.map((p, i) =>
-    '<div class="dlBead" data-i="' + i + '"><button class="bd">' + dlLabel(p) +
-    '</button><div class="tx">' + dlText(p) + '</div></div>').join('');
-  document.querySelectorAll('#dlChain .dlBead').forEach((el, i) => {
-    el.querySelector('.bd').addEventListener('click', () => {
-      const st2 = dlState();
-      if (!st2.done) {
-        st2.open = st2.open || {};
-        if (st2.open[i]) delete st2.open[i]; else st2.open[i] = 1;
-        dlSave(st2);
-      } else {
-        el.classList.toggle('open');
-        return;
-      }
-      dlRefresh(st2, chain);
-    });
-  });
+  $('dlChain').innerHTML =
+    '<div class="dlBody">' + chain.map((p) => dlText(p)).join(' — ') + '</div>' +
+    '<p class="hint dlRefs">' + chain.map((p) => dlLabel(p)).join(' · ') + '</p>';
   $('dlReason').value = '';
   $('dlSaved').style.display = 'none';
   dlRelBuild(lead, chain);
