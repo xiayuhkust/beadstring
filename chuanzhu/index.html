@@ -155,6 +155,21 @@
   .gtag.b { color: #f5cd8a; border: 1px solid rgba(245,205,138,0.45); }
   .gtag.d { color: #b3a5e8; border: 1px solid rgba(179,165,232,0.5); }
   .drawRow { display: flex; gap: 0.5em; justify-content: center; margin: 0.45em 0 0; }
+  #dlLead { max-width: 34em; margin: 0.8em auto; padding: 0.9em 1.2em; text-align: left;
+    border: 1px solid rgba(245,205,138,0.4); border-radius: 12px; background: var(--card);
+    line-height: 2; }
+  #dlLead .src { display: block; margin-top: 0.4em; font-size: 0.75em; opacity: 0.65;
+    letter-spacing: 0.1em; }
+  .dlBead { max-width: 34em; margin: 0.4em auto; text-align: left; }
+  .dlBead .bd { display: flex; align-items: center; gap: 0.6em; width: 100%; text-align: left;
+    cursor: pointer; background: none; border: none; color: inherit; font-family: inherit;
+    font-size: 0.85rem; letter-spacing: 0.06em; padding: 0.35em 0.2em; }
+  .dlBead .bd::before { content: ''; width: 11px; height: 11px; border-radius: 50%; flex: none;
+    background: radial-gradient(circle at 35% 30%, #ffe9bd, #e8a75c 65%, #a86a2c); opacity: 0.4; }
+  .dlBead.open .bd::before { opacity: 1; box-shadow: 0 0 6px rgba(245,205,138,0.55); }
+  .dlBead .tx { display: none; line-height: 2; padding: 0.1em 0 0.5em 1.75em; opacity: 0.95; }
+  .dlBead.open .tx { display: block; }
+  #dlMyReason { max-width: 30em; margin: 0.8em auto 0.2em; opacity: 0.9; }
   .tflt { display: flex; gap: 0.5em; justify-content: center; margin: 0.8em 0 0.2em; }
   .fbtn { font-family: inherit; font-size: 0.72rem; letter-spacing: 0.08em; padding: 0.28em 1em;
     border-radius: 2em; background: none; color: inherit; opacity: 0.55;
@@ -254,7 +269,7 @@
         <button id="readBtn" class="gold">读 经</button>
       </div>
       <div class="btnrow" style="margin-top:0.2em">
-        <button id="startBtn" class="goldline">今 日 一 串</button>
+        <button id="startBtn" class="goldline">每 日 一 串</button>
       </div>
       <div class="btnrow" style="margin-top:0.1em">
         <button id="randBtn" class="goldline">随 机 一 串</button>
@@ -389,6 +404,29 @@
     </section>
 
     <!-- 笔记 -->
+    <section id="sDaily" class="stage">
+      <div class="stageTitle">每 日 一 串</div>
+      <p class="hint" id="dlDate" style="margin-top:0"></p>
+      <div id="dlLead"></div>
+      <div id="dlChain"></div>
+      <div id="dlWrite" style="display:none">
+        <textarea id="dlReason" maxlength="100" placeholder="这串经文今天带给你什么……（可跳过，只有你自己能看见）"></textarea>
+        <div class="btnrow">
+          <button id="dlDone" class="gold">串 成</button>
+          <button id="dlSkip" class="ghost">不 写 了 ， 直 接 串 成</button>
+        </div>
+      </div>
+      <div id="dlReview" style="display:none">
+        <div id="dlMyReason"></div>
+        <p class="hint">晚 间 回 顾 —— 再 读 一 遍 ， 白 天 的 亮 光 还 在 吗</p>
+      </div>
+      <p class="hint" id="dlSaved" style="display:none">已记进串珠历 · 晚上回来可再读一遍</p>
+      <p class="hint" style="opacity:0.55; margin-top:1.2em">编排 · Daily Light 1875，四代人的手工</p>
+      <div class="btnrow" style="margin-top:0.6em">
+        <button id="dlBack" class="ghost">回 门 口</button>
+      </div>
+    </section>
+
     <section id="sNotes" class="stage">
       <div class="stageTitle" style="margin-top:0">我 的 串 珠 笔 记</div>
       <div id="noteList"></div>
@@ -407,6 +445,7 @@
 <script src="../data/beads-1.js" async></script>
 <script src="../data/beads-2.js" async></script>
 <script src="../data/beads-grade.js" async></script>
+<script src="../data/daily-light.js" async></script>
 <script>
 // ================================================================ 数据
 // 珠对来自 TSK / OpenBible.info cross-references（CC-BY），经文为和合本（公有领域）
@@ -603,8 +642,113 @@ function goBead(r) {
   location.href = 'index.html?a=' + encodeURIComponent(r[0] + ':' + r[4]) +
     '&b=' + encodeURIComponent(r[1] + ':' + r[5]) + '&v=' + r[2] + '&n=' + r[3];
 }
+
+// ================================================================ 每日一串（Daily Light）
+// 编排 = Bagster 1875 公版（顺序即作品，只换译本）；文本 = 和合本；
+// 晚间再开 = 回顾同一串（用户定：晚串做省察回顾，不是第二串）
+const DLREF = /^([1-3]?[A-Za-z]+)(\d+):(\d+)(?:-(\d+))?$/;
+function dlState() {
+  try {
+    const st = JSON.parse(localStorage.getItem('chuanzhu_daily')) || {};
+    if (st.d === localDayKey()) return st;
+  } catch (e) {}
+  return { d: localDayKey(), open: {} };
+}
+function dlSave(st) { localStorage.setItem('chuanzhu_daily', JSON.stringify(st)); }
+function dlKey() {
+  const d = new Date();
+  return String(d.getMonth() + 1).padStart(2, '0') + String(d.getDate()).padStart(2, '0');
+}
+function dlZh(r) {
+  const m = r.match(DLREF);
+  if (!m) return null;
+  const zb = (window.TSK_ZH || {})[m[1]];
+  return zb ? { b: zb, c: m[2], v: +m[3], v2: +(m[4] || m[3]) } : null;
+}
+function dlLabel(p, full) {
+  const name = full ? ((window.BOOKFULL || {})[p.b] || p.b) + ' ' : p.b;
+  return name + p.c + ':' + p.v + (p.v2 > p.v ? '-' + p.v2 : '');
+}
+function dlText(p) {
+  let out = '';
+  for (let v = p.v; v <= p.v2; v++) out += (window.VERSES || {})[p.b + p.c + ':' + v] || '';
+  return out;
+}
+function dlDateLabel(st) {
+  const d = new Date();
+  return '每日 · ' + (d.getMonth() + 1) + ' 月 ' + d.getDate() + ' 日' +
+    (st.done ? ' · 回顾' : '');
+}
+function dlRefresh(st, chain) {
+  const opened = st.done ? chain.length
+    : chain.filter((_, i) => st.open && st.open[i]).length;
+  document.querySelectorAll('#dlChain .dlBead').forEach((el, i) => {
+    el.classList.toggle('open', !!(st.done || (st.open && st.open[i])));
+  });
+  $('dlWrite').style.display = (!st.done && opened === chain.length) ? '' : 'none';
+  $('dlReview').style.display = st.done ? '' : 'none';
+  if (st.done) $('dlMyReason').textContent = st.reason ? '「' + st.reason + '」' : '';
+  $('dlDate').textContent = dlDateLabel(st);
+}
+function openDaily() {
+  zhmapReady().then(() => {
+    const rec = (window.DLIGHT || {})[dlKey() + 'am'];
+    if (!rec) return;
+    const st = dlState();
+    const parts = rec.split('|');
+    const lead = dlZh(parts[0]);
+    const chain = parts[1].split(';').map(dlZh).filter(Boolean);
+    if (!lead || !chain.length) return;
+    $('dlLead').innerHTML = dlText(lead) +
+      '<span class="src">' + dlLabel(lead, true) + '</span>';
+    $('dlChain').innerHTML = chain.map((p, i) =>
+      '<div class="dlBead" data-i="' + i + '"><button class="bd">' + dlLabel(p) +
+      '</button><div class="tx">' + dlText(p) + '</div></div>').join('');
+    document.querySelectorAll('#dlChain .dlBead').forEach((el, i) => {
+      el.querySelector('.bd').addEventListener('click', () => {
+        const st2 = dlState();
+        if (!st2.done) {
+          st2.open = st2.open || {};
+          if (st2.open[i]) delete st2.open[i]; else st2.open[i] = 1;
+          dlSave(st2);
+        } else {
+          el.classList.toggle('open');
+          return;
+        }
+        dlRefresh(st2, chain);
+      });
+    });
+    $('dlReason').value = '';
+    $('dlSaved').style.display = 'none';
+    dlRefresh(st, chain);
+    go('sDaily');
+  });
+}
+function dlFinish(withNote) {
+  const st = dlState();
+  if (st.done) return;
+  st.done = 1;
+  st.reason = withNote ? $('dlReason').value.trim().slice(0, 100) : '';
+  dlSave(st);
+  let days = {};
+  try { days = JSON.parse(localStorage.getItem('chuanzhu_days')) || {}; } catch (e) {}
+  days[localDayKey()] = (days[localDayKey()] || 0) + 1;
+  localStorage.setItem('chuanzhu_days', JSON.stringify(days));
+  let hist = [];
+  try { hist = JSON.parse(localStorage.getItem('chuanzhu_dailyhist')) || []; } catch (e) {}
+  hist.unshift({ d: localDayKey(), k: dlKey(), reason: st.reason });
+  localStorage.setItem('chuanzhu_dailyhist', JSON.stringify(hist.slice(0, 400)));
+  $('dlSaved').style.display = '';
+  const rec = (window.DLIGHT || {})[dlKey() + 'am'];
+  dlRefresh(st, rec.split('|')[1].split(';'));
+  updateIntroCount();
+}
+document.getElementById('dlDone').addEventListener('click', () => dlFinish(true));
+document.getElementById('dlSkip').addEventListener('click', () => dlFinish(false));
+document.getElementById('dlBack').addEventListener('click', () => go('sIntro'));
+
 function dailyGo() {
-  waitReady(document.getElementById('startBtn'), () => goBead(dailyBead()));
+  waitReady(document.getElementById('startBtn'), openDaily);
 }
 
 function strungKeys() {
@@ -899,7 +1043,7 @@ $('revealBtn').addEventListener('click', () => {
 
 // ---- TSK 节级线索（v2 索引：tsk/<OSIS>.js 按卷按需加载，语言无关，zh 经 zhmap 渲染）----
 const TSKQ = {};
-const TSKV = '202607231320';   // tsk 分片版本：重产分片时手动更新
+const TSKV = '202607231500';   // tsk 分片版本：重产分片时手动更新
 function tskFetch(file) {
   if (!TSKQ[file]) TSKQ[file] = new Promise(res => {
     const sc = document.createElement('script');
@@ -1190,15 +1334,14 @@ document.querySelectorAll('.lang').forEach(b => b.addEventListener('click', () =
 // 今日的珠已串成 → 入口只剩随机一串（最常用入口居主位）
 // 同时：上一串的章还有未串的珠 → 亮出"继续串"入口
 {
+  if (dlState().done) {
+    $('startBtn').textContent = '今 晚 · 回 顾 这 串';
+    document.querySelector('#sIntro .monk').innerHTML =
+      '今日的链已串成。<br>晚上回来，再读一遍。';
+  }
   const t = setInterval(() => {
     if (!beadsReady()) return;
     clearInterval(t);
-    const r = dailyBead();
-    if (strungKeys().has([r[0], r[1]].sort().join('|'))) {
-      $('startBtn').style.display = 'none';
-      document.querySelector('#sIntro .monk').innerHTML =
-        '今日的珠已串成。<br>旷野还大——随手再取一颗吧。';
-    }
     const chs = lastChs();
     if (chs) {
       const row = $('contRow');

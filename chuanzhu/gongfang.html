@@ -565,7 +565,7 @@ function passageHTML(s, i) {
 
 // ---- TSK 节级线索（v2 索引：tsk/<OSIS>.js 按卷按需加载，语言无关，zh 经 zhmap 渲染）----
 const TSKQ = {};
-const TSKV = '202607231320';   // tsk 分片版本：重产分片时手动更新
+const TSKV = '202607231500';   // tsk 分片版本：重产分片时手动更新
 function tskFetch(file) {
   if (!TSKQ[file]) TSKQ[file] = new Promise(res => {
     const sc = document.createElement('script');

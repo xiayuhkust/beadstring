@@ -30,7 +30,7 @@ function Stamp-Html($dir) {
   }
   foreach ($h in Get-ChildItem $dir -Filter *.html) {
     $c = [System.IO.File]::ReadAllText($h.FullName, [System.Text.Encoding]::UTF8)
-    $c = [regex]::Replace($c, 'data/((?:beads|verses|books)[A-Za-z\-\d]*\.js)', $ev)
+    $c = [regex]::Replace($c, 'data/((?:beads|verses|books|daily)[A-Za-z\-\d]*\.js)', $ev)
     $c = $c -replace '(tokens\.css|theme-huiben\.css|account\.js)', ('$1?v=' + $v)
     [System.IO.File]::WriteAllText($h.FullName, $c, (New-Object System.Text.UTF8Encoding($false)))
   }
@@ -55,6 +55,7 @@ New-Item -ItemType Directory -Force (Join-Path $dist 'data') | Out-Null
 Copy-Item (Join-Path $root 'data\beads-*.js')  (Join-Path $dist 'data')
 Copy-Item (Join-Path $root 'data\verses-*.js') (Join-Path $dist 'data')
 Copy-Item (Join-Path $root 'data\books*.js')   (Join-Path $dist 'data')
+Copy-Item (Join-Path $root 'data\daily-*.js')  (Join-Path $dist 'data')
 # v2 节级线索索引（TSK 不可变，无需 ?v 戳）
 New-Item -ItemType Directory -Force (Join-Path $dist 'data\tsk') | Out-Null
 Copy-Item (Join-Path $root 'data\tsk\*.js') (Join-Path $dist 'data\tsk')

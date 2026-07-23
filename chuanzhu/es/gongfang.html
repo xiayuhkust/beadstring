@@ -534,7 +534,7 @@ function passageHTML(s, i) {
 
 // ---- TSK verse-level threads (v2 index: tsk/<OSIS>.js, per-book, loaded on demand) ----
 const TSKQ = {};
-const TSKV = '202607231320';   // tsk 分片版本：重产分片时手动更新
+const TSKV = '202607231500';   // tsk 分片版本：重产分片时手动更新
 function tskFetch(file) {
   if (!TSKQ[file]) TSKQ[file] = new Promise(res => {
     const sc = document.createElement('script');

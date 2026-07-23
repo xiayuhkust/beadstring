@@ -157,6 +157,21 @@
   .gtag.b { color: #f5cd8a; border: 1px solid rgba(245,205,138,0.45); }
   .gtag.d { color: #b3a5e8; border: 1px solid rgba(179,165,232,0.5); }
   .drawRow { display: flex; gap: 0.5em; justify-content: center; margin: 0.45em 0 0; }
+  #dlLead { max-width: 34em; margin: 0.8em auto; padding: 0.9em 1.2em; text-align: left;
+    border: 1px solid rgba(245,205,138,0.4); border-radius: 12px; background: var(--card);
+    line-height: 2; }
+  #dlLead .src { display: block; margin-top: 0.4em; font-size: 0.75em; opacity: 0.65;
+    letter-spacing: 0.1em; }
+  .dlBead { max-width: 34em; margin: 0.4em auto; text-align: left; }
+  .dlBead .bd { display: flex; align-items: center; gap: 0.6em; width: 100%; text-align: left;
+    cursor: pointer; background: none; border: none; color: inherit; font-family: inherit;
+    font-size: 0.85rem; letter-spacing: 0.06em; padding: 0.35em 0.2em; }
+  .dlBead .bd::before { content: ''; width: 11px; height: 11px; border-radius: 50%; flex: none;
+    background: radial-gradient(circle at 35% 30%, #ffe9bd, #e8a75c 65%, #a86a2c); opacity: 0.4; }
+  .dlBead.open .bd::before { opacity: 1; box-shadow: 0 0 6px rgba(245,205,138,0.55); }
+  .dlBead .tx { display: none; line-height: 2; padding: 0.1em 0 0.5em 1.75em; opacity: 0.95; }
+  .dlBead.open .tx { display: block; }
+  #dlMyReason { max-width: 30em; margin: 0.8em auto 0.2em; opacity: 0.9; }
   .tflt { display: flex; gap: 0.5em; justify-content: center; margin: 0.8em 0 0.2em; }
   .fbtn { font-family: inherit; font-size: 0.72rem; letter-spacing: 0.08em; padding: 0.28em 1em;
     border-radius: 2em; background: none; color: inherit; opacity: 0.55;
@@ -256,7 +271,7 @@
         <button id="readBtn" class="gold">Read Scripture</button>
       </div>
       <div class="btnrow" style="margin-top:0.2em">
-        <button id="startBtn" class="goldline">Today's Bead</button>
+        <button id="startBtn" class="goldline">The Daily String</button>
       </div>
       <div class="btnrow" style="margin-top:0.1em">
         <button id="randBtn" class="goldline">A Random Bead</button>
@@ -393,6 +408,29 @@
     </section>
 
     <!-- notes -->
+    <section id="sDaily" class="stage">
+      <div class="stageTitle">The Daily String</div>
+      <p class="hint" id="dlDate" style="margin-top:0"></p>
+      <div id="dlLead"></div>
+      <div id="dlChain"></div>
+      <div id="dlWrite" style="display:none">
+        <textarea id="dlReason" maxlength="200" placeholder="What did this chain bring you today… (optional — only you can see it)"></textarea>
+        <div class="btnrow">
+          <button id="dlDone" class="gold">String It</button>
+          <button id="dlSkip" class="ghost">String It Without a Note</button>
+        </div>
+      </div>
+      <div id="dlReview" style="display:none">
+        <div id="dlMyReason"></div>
+        <p class="hint">evening review — read it once more; is the morning light still there</p>
+      </div>
+      <p class="hint" id="dlSaved" style="display:none">Marked in your stringing days · come back tonight to read it again</p>
+      <p class="hint" style="opacity:0.55; margin-top:1.2em">arrangement · Daily Light, 1875 — four generations of handwork</p>
+      <div class="btnrow" style="margin-top:0.6em">
+        <button id="dlBack" class="ghost">Back</button>
+      </div>
+    </section>
+
     <section id="sNotes" class="stage">
       <div class="stageTitle" style="margin-top:0">My Bead Notes</div>
       <div id="noteList"></div>
@@ -411,6 +449,7 @@
 <script src="../data/beads-en-1.js" async></script>
 <script src="../data/beads-en-2.js" async></script>
 <script src="../data/beads-grade-en.js" async></script>
+<script src="../data/daily-light.js" async></script>
 <script>
 // ================================================================ data
 // Bead pairs from TSK / OpenBible.info cross-references (CC-BY); text: KJV (public domain)
@@ -547,8 +586,114 @@ function goBead(r) {
   location.href = 'index.html?a=' + encodeURIComponent(r[0] + ':' + r[4]) +
     '&b=' + encodeURIComponent(r[1] + ':' + r[5]) + '&v=' + r[2] + '&n=' + r[3];
 }
+
+// ================================================================ the daily string (Daily Light)
+// arrangement = Bagster 1875, public domain (the order IS the work; only the
+// translation changes); evening reopen = review of the same chain
+const DLREF = /^([1-3]?[A-Za-z]+)(\d+):(\d+)(?:-(\d+))?$/;
+function dlState() {
+  try {
+    const st = JSON.parse(localStorage.getItem('chuanzhu_daily')) || {};
+    if (st.d === localDayKey()) return st;
+  } catch (e) {}
+  return { d: localDayKey(), open: {} };
+}
+function dlSave(st) { localStorage.setItem('chuanzhu_daily', JSON.stringify(st)); }
+function dlKey() {
+  const d = new Date();
+  return String(d.getMonth() + 1).padStart(2, '0') + String(d.getDate()).padStart(2, '0');
+}
+function dlParse(r) {
+  const m = r.match(DLREF);
+  return m ? { b: m[1], c: m[2], v: +m[3], v2: +(m[4] || m[3]) } : null;
+}
+function dlLabel(p, full) {
+  const name = full ? ((window.BOOKFULL || {})[p.b] || p.b) : p.b;
+  return name + ' ' + p.c + ':' + p.v + (p.v2 > p.v ? '-' + p.v2 : '');
+}
+function dlText(p) {
+  let out = '';
+  for (let v = p.v; v <= p.v2; v++) {
+    const t = (window.VERSES || {})[p.b + p.c + ':' + v];
+    if (t) out += (out ? ' ' : '') + t;
+  }
+  return out;
+}
+const DLMON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+               'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+function dlDateLabel(st) {
+  const d = new Date();
+  return 'Daily · ' + DLMON[d.getMonth()] + ' ' + d.getDate() +
+    (st.done ? ' · review' : '');
+}
+function dlRefresh(st, chain) {
+  const opened = st.done ? chain.length
+    : chain.filter((_, i) => st.open && st.open[i]).length;
+  document.querySelectorAll('#dlChain .dlBead').forEach((el, i) => {
+    el.classList.toggle('open', !!(st.done || (st.open && st.open[i])));
+  });
+  $('dlWrite').style.display = (!st.done && opened === chain.length) ? '' : 'none';
+  $('dlReview').style.display = st.done ? '' : 'none';
+  if (st.done) $('dlMyReason').textContent = st.reason ? '“' + st.reason + '”' : '';
+  $('dlDate').textContent = dlDateLabel(st);
+}
+function openDaily() {
+  const rec = (window.DLIGHT || {})[dlKey() + 'am'];
+  if (!rec) return;
+  const st = dlState();
+  const parts = rec.split('|');
+  const lead = dlParse(parts[0]);
+  const chain = parts[1].split(';').map(dlParse).filter(Boolean);
+  if (!lead || !chain.length) return;
+  $('dlLead').innerHTML = dlText(lead) +
+    '<span class="src">' + dlLabel(lead, true) + '</span>';
+  $('dlChain').innerHTML = chain.map((p, i) =>
+    '<div class="dlBead" data-i="' + i + '"><button class="bd">' + dlLabel(p) +
+    '</button><div class="tx">' + dlText(p) + '</div></div>').join('');
+  document.querySelectorAll('#dlChain .dlBead').forEach((el, i) => {
+    el.querySelector('.bd').addEventListener('click', () => {
+      const st2 = dlState();
+      if (!st2.done) {
+        st2.open = st2.open || {};
+        if (st2.open[i]) delete st2.open[i]; else st2.open[i] = 1;
+        dlSave(st2);
+      } else {
+        el.classList.toggle('open');
+        return;
+      }
+      dlRefresh(st2, chain);
+    });
+  });
+  $('dlReason').value = '';
+  $('dlSaved').style.display = 'none';
+  dlRefresh(st, chain);
+  go('sDaily');
+}
+function dlFinish(withNote) {
+  const st = dlState();
+  if (st.done) return;
+  st.done = 1;
+  st.reason = withNote ? $('dlReason').value.trim().slice(0, 200) : '';
+  dlSave(st);
+  let days = {};
+  try { days = JSON.parse(localStorage.getItem('chuanzhu_days')) || {}; } catch (e) {}
+  days[localDayKey()] = (days[localDayKey()] || 0) + 1;
+  localStorage.setItem('chuanzhu_days', JSON.stringify(days));
+  let hist = [];
+  try { hist = JSON.parse(localStorage.getItem('chuanzhu_dailyhist')) || []; } catch (e) {}
+  hist.unshift({ d: localDayKey(), k: dlKey(), reason: st.reason });
+  localStorage.setItem('chuanzhu_dailyhist', JSON.stringify(hist.slice(0, 400)));
+  $('dlSaved').style.display = '';
+  const rec = (window.DLIGHT || {})[dlKey() + 'am'];
+  dlRefresh(st, rec.split('|')[1].split(';'));
+  updateIntroCount();
+}
+document.getElementById('dlDone').addEventListener('click', () => dlFinish(true));
+document.getElementById('dlSkip').addEventListener('click', () => dlFinish(false));
+document.getElementById('dlBack').addEventListener('click', () => go('sIntro'));
+
 function dailyGo() {
-  waitReady(document.getElementById('startBtn'), () => goBead(dailyBead()));
+  waitReady(document.getElementById('startBtn'), openDaily);
 }
 
 function strungKeys() {
@@ -835,7 +980,7 @@ $('revealBtn').addEventListener('click', () => {
 
 // ---- TSK verse-level threads (v2 index: tsk/<OSIS>.js, per-book, loaded on demand) ----
 const TSKQ = {};
-const TSKV = '202607231320';   // tsk 分片版本：重产分片时手动更新
+const TSKV = '202607231500';   // tsk 分片版本：重产分片时手动更新
 function tskFetch(file) {
   if (!TSKQ[file]) TSKQ[file] = new Promise(res => {
     const sc = document.createElement('script');
@@ -1107,15 +1252,14 @@ document.querySelectorAll('.lang').forEach(b => b.addEventListener('click', () =
 
 // today's bead already strung -> random takes the lead; continue-chapter entries
 {
+  if (dlState().done) {
+    $('startBtn').textContent = 'Tonight · Read It Again';
+    document.querySelector('#sIntro .monk').innerHTML =
+      'Today’s chain is strung.<br>Come back tonight and read it once more.';
+  }
   const t = setInterval(() => {
     if (!beadsReady()) return;
     clearInterval(t);
-    const r = dailyBead();
-    if (strungKeys().has([r[0], r[1]].sort().join('|'))) {
-      $('startBtn').style.display = 'none';
-      document.querySelector('#sIntro .monk').innerHTML =
-        'Today’s bead is strung.<br>The wilderness is wide — take another as you go.';
-    }
     const chs = lastChs();
     if (chs) {
       const row = $('contRow');
