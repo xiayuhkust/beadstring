@@ -6,13 +6,12 @@ Live: **https://beadstring.app** (English default · 中文 / Español / Portugu
 
 BeadString is a non-profit devotional web app built on the ~340,000 cross-references
 of the *Treasury of Scripture Knowledge* (via OpenBible.info). A "bead" joins two
-scripture passages; you read both ends, tap the words you believe are joined,
-write down why — and the strand hangs in your workshop. In the desert, the monks
-prayed as they wove. Today is no different.
+scripture passages; you read both ends, mark the words you believe are joined,
+and write down why. Finished strands are kept in your workshop.
 
 三大铁则 / three house rules:
 
-1. **No quizzes, no right answers.** The beads are given; the seeing is yours.
+1. **No quizzes, no right answers.** Users may swap a bead or reveal the marked words at any time.
 2. **The platform never authors interpretation.** Only verifiable things are on the
    table: scripture text, TSK cross-reference facts, and readers' own notes
    (clearly marked as non-authoritative). The TSK dataset is never edited —
@@ -21,8 +20,6 @@ prayed as they wove. Today is no different.
    scripture or interpretation.
 
 ## Open source & open data
-
-This is a non-profit project; everything that can be open is open.
 
 - **Code** — MIT (see LICENSE).
 - **Community dataset** — `data/community/community-strands.json`: the notes users
@@ -65,6 +62,5 @@ it runs (cloud features activate only on beadstring.app).
 
 ## Credits
 
-- Cross-reference data: Treasury of Scripture Knowledge, votes and curation by
-  [OpenBible.info](https://www.openbible.info/) (CC BY).
-- Every bead-stringer who leaves a note for the ones who come after.
+Cross-reference data: Treasury of Scripture Knowledge, votes and curation by
+[OpenBible.info](https://www.openbible.info/) (CC BY).
