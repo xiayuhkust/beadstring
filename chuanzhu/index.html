@@ -170,6 +170,13 @@
   .dlBead .tx { display: none; line-height: 2; padding: 0.1em 0 0.5em 1.75em; opacity: 0.95; }
   .dlBead.open .tx { display: block; }
   #dlMyReason { max-width: 30em; margin: 0.8em auto 0.2em; opacity: 0.9; }
+  .dlLink { display: block; width: 100%; text-align: center; cursor: pointer;
+    font-family: inherit; color: #f5cd8a; font-size: 0.78rem; letter-spacing: 0.1em;
+    background: none; border: 1px dashed rgba(245,205,138,0.45); border-radius: 10px;
+    padding: 0.45em; margin: 0.5em 0 0; }
+  .dlLink:hover { border-color: rgba(245,205,138,0.8); }
+  .dlTsk { display: block; font-size: 0.72em; opacity: 0.6; margin-top: 0.5em;
+    letter-spacing: 0.05em; }
   .tflt { display: flex; gap: 0.5em; justify-content: center; margin: 0.8em 0 0.2em; }
   .fbtn { font-family: inherit; font-size: 0.72rem; letter-spacing: 0.08em; padding: 0.28em 1em;
     border-radius: 2em; background: none; color: inherit; opacity: 0.55;
@@ -407,6 +414,11 @@
     <section id="sDaily" class="stage">
       <div class="stageTitle">每 日 功 课</div>
       <p class="hint" id="dlDate" style="margin-top:0"></p>
+      <div class="tflt" id="dlTabs">
+        <button class="fbtn on" data-t="main">功 课</button>
+        <button class="fbtn" data-t="rel">关 联</button>
+      </div>
+      <div id="dlMain">
       <div id="dlLead"></div>
       <div id="dlChain"></div>
       <div id="dlWrite" style="display:none">
@@ -421,6 +433,8 @@
         <p class="hint">晚 间 回 顾 —— 再 读 一 遍 ， 白 天 的 亮 光 还 在 吗</p>
       </div>
       <p class="hint" id="dlSaved" style="display:none">已记进串珠历 · 晚上回来可再读一遍</p>
+      </div>
+      <div id="dlRel" style="display:none"></div>
       <p class="hint" style="opacity:0.55; margin-top:1.2em">编排 · Daily Light 1875，四代人的手工</p>
       <div class="btnrow" style="margin-top:0.6em">
         <button id="dlBack" class="ghost">回 门 口</button>
@@ -720,8 +734,45 @@ function openDaily() {
     });
     $('dlReason').value = '';
     $('dlSaved').style.display = 'none';
+    dlRelBuild(lead, chain);
+    dlTab('main');
     dlRefresh(st, chain);
     go('sDaily');
+  });
+}
+
+function dlTab(t) {
+  document.querySelectorAll('#dlTabs .fbtn').forEach((x) =>
+    x.classList.toggle('on', x.dataset.t === t));
+  $('dlMain').style.display = t === 'main' ? '' : 'none';
+  $('dlRel').style.display = t === 'rel' ? '' : 'none';
+}
+// 关联页：每节之下可结「领句↔这节」的珠——两段之间的含义交给用户（TSK 有线则标见证）
+function dlRelBuild(lead, chain) {
+  const box = $('dlRel');
+  box.innerHTML =
+    '<p class="hint" style="margin-top:0.2em">领句可以连到下面任何一节——两段之间的含义，由你来写</p>' +
+    chain.map((p, i) =>
+      '<div class="dlBead open"><button class="bd">' + dlLabel(p) + '</button>' +
+      '<div class="tx">' + dlText(p) + '<div class="dlRelRow" data-i="' + i + '"></div></div></div>').join('');
+  const leadCh = lead.b + lead.c;
+  chain.forEach((p, i) => {
+    const row = box.querySelector('.dlRelRow[data-i="' + i + '"]');
+    if (p.b + p.c === leadCh) return;   // 同章结不了珠
+    row.innerHTML = '<button class="dlLink">＋ 把 领 句 连 到 这 节</button>';
+    row.querySelector('.dlLink').addEventListener('click', () => {
+      location.href = 'index.html?a=' + encodeURIComponent(lead.b + lead.c + ':' + lead.v) +
+        '&b=' + encodeURIComponent(p.b + p.c + ':' + p.v) + '&v=0&n=0';
+    });
+    if (ZH2O) {
+      const A = (ZH2O[lead.b] || '') + lead.c, B = (ZH2O[p.b] || '') + p.c;
+      if (A.length > lead.c.length && B.length > p.c.length)
+        tskThreads(A, B).then((list) => {
+          const hit = list.find((r) => parseInt(r[0]) === lead.v && parseInt(r[1]) === p.v);
+          if (hit) row.insertAdjacentHTML('afterbegin',
+            '<span class="dlTsk">两百年前的串珠人也连过这一对 · ' + hit[2] + '</span>');
+        });
+    }
   });
 }
 function dlFinish(withNote) {
@@ -746,6 +797,8 @@ function dlFinish(withNote) {
 document.getElementById('dlDone').addEventListener('click', () => dlFinish(true));
 document.getElementById('dlSkip').addEventListener('click', () => dlFinish(false));
 document.getElementById('dlBack').addEventListener('click', () => go('sIntro'));
+document.querySelectorAll('#dlTabs .fbtn').forEach((b) =>
+  b.addEventListener('click', () => dlTab(b.dataset.t)));
 
 function dailyGo() {
   waitReady(document.getElementById('startBtn'), openDaily);

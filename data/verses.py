@@ -19,9 +19,14 @@ for vol, ch, vs, text in cur.execute('SELECT VolumeSN, ChapterSN, VerseSN, Lecti
     t = (text or '').replace('　', '').strip()
     verses[f'{ABBR[vol-1]}{ch}:{vs}'] = t
 
-# 分片输出（CDN 只对 <2MB 的 js 自动 gzip）
+# 源数据缺陷修正：诗63 源库把 5/6 两节反序并进了 63:5（2026-07-24 发现，KJV 对照定位）
+if not verses.get('诗63:6') and '记念' in verses.get('诗63:5', ''):
+    verses['诗63:5'] = '我的心就像饱足了骨髓肥油，我也要以欢乐的嘴唇赞美你。'
+    verses['诗63:6'] = '我在床上记念你，在夜更的时候思想你。'
+
+# 分片输出（CDN 只对 <2MB 的 js 自动 gzip）；只清中文分片，勿动 -en/-es/-pt
 import glob, os as _os
-for old in glob.glob('verses*.js'):
+for old in glob.glob('verses-[0-9].js') + glob.glob('verses-[0-9][0-9].js'):
     _os.remove(old)
 items = list(verses.items())
 LIMIT = int(1.7 * 1024 * 1024)
@@ -49,6 +54,6 @@ with open('books.js', 'w', encoding='utf-8') as f:
 
 import os
 print('verses:', len(verses))
-print('verses.js MB:', round(os.path.getsize('verses.js')/1048576, 2))
+print('shard MB:', [round(os.path.getsize(f'verses-{i}.js')/1048576, 2) for i in range(1, K + 1)])
 samples = ['创1:1','拿4:2','出34:6','诗23:1','约11:43']
 open('sample.txt','w',encoding='utf-8').write('\n'.join(f'{k} {verses.get(k)}' for k in samples))

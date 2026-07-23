@@ -172,6 +172,13 @@
   .dlBead .tx { display: none; line-height: 2; padding: 0.1em 0 0.5em 1.75em; opacity: 0.95; }
   .dlBead.open .tx { display: block; }
   #dlMyReason { max-width: 30em; margin: 0.8em auto 0.2em; opacity: 0.9; }
+  .dlLink { display: block; width: 100%; text-align: center; cursor: pointer;
+    font-family: inherit; color: #f5cd8a; font-size: 0.78rem; letter-spacing: 0.1em;
+    background: none; border: 1px dashed rgba(245,205,138,0.45); border-radius: 10px;
+    padding: 0.45em; margin: 0.5em 0 0; }
+  .dlLink:hover { border-color: rgba(245,205,138,0.8); }
+  .dlTsk { display: block; font-size: 0.72em; opacity: 0.6; margin-top: 0.5em;
+    letter-spacing: 0.05em; }
   .tflt { display: flex; gap: 0.5em; justify-content: center; margin: 0.8em 0 0.2em; }
   .fbtn { font-family: inherit; font-size: 0.72rem; letter-spacing: 0.08em; padding: 0.28em 1em;
     border-radius: 2em; background: none; color: inherit; opacity: 0.55;
@@ -411,6 +418,11 @@
     <section id="sDaily" class="stage">
       <div class="stageTitle">La Porción Diaria</div>
       <p class="hint" id="dlDate" style="margin-top:0"></p>
+      <div class="tflt" id="dlTabs">
+        <button class="fbtn on" data-t="main">porción</button>
+        <button class="fbtn" data-t="rel">conexiones</button>
+      </div>
+      <div id="dlMain">
       <div id="dlLead"></div>
       <div id="dlChain"></div>
       <div id="dlWrite" style="display:none">
@@ -425,6 +437,8 @@
         <p class="hint">repaso de la noche — léela una vez más; ¿sigue ahí la luz de la mañana?</p>
       </div>
       <p class="hint" id="dlSaved" style="display:none">Anotado en tus días de ensartar · vuelve esta noche a leerla otra vez</p>
+      </div>
+      <div id="dlRel" style="display:none"></div>
       <p class="hint" style="opacity:0.55; margin-top:1.2em">arreglo · Daily Light, 1875 — cuatro generaciones de trabajo manual</p>
       <div class="btnrow" style="margin-top:0.6em">
         <button id="dlBack" class="ghost">Volver</button>
@@ -660,8 +674,42 @@ function openDaily() {
   });
   $('dlReason').value = '';
   $('dlSaved').style.display = 'none';
+  dlRelBuild(lead, chain);
+  dlTab('main');
   dlRefresh(st, chain);
   go('sDaily');
+}
+
+function dlTab(t) {
+  document.querySelectorAll('#dlTabs .fbtn').forEach((x) =>
+    x.classList.toggle('on', x.dataset.t === t));
+  $('dlMain').style.display = t === 'main' ? '' : 'none';
+  $('dlRel').style.display = t === 'rel' ? '' : 'none';
+}
+// connections tab: under each verse, tie a bead (lead <-> this verse);
+// what passes between them is the user's to write (TSK witness marked when present)
+function dlRelBuild(lead, chain) {
+  const box = $('dlRel');
+  box.innerHTML =
+    '<p class="hint" style="margin-top:0.2em">el versículo guía puede unirse a cualquiera de los de abajo — lo que pasa entre ellos te toca escribirlo a ti</p>' +
+    chain.map((p, i) =>
+      '<div class="dlBead open"><button class="bd">' + dlLabel(p) + '</button>' +
+      '<div class="tx">' + dlText(p) + '<div class="dlRelRow" data-i="' + i + '"></div></div></div>').join('');
+  const leadCh = lead.b + lead.c;
+  chain.forEach((p, i) => {
+    const row = box.querySelector('.dlRelRow[data-i="' + i + '"]');
+    if (p.b + p.c === leadCh) return;
+    row.innerHTML = '<button class="dlLink">＋ Unir el Versículo Guía a Este</button>';
+    row.querySelector('.dlLink').addEventListener('click', () => {
+      location.href = 'index.html?a=' + encodeURIComponent(lead.b + lead.c + ':' + lead.v) +
+        '&b=' + encodeURIComponent(p.b + p.c + ':' + p.v) + '&v=0&n=0';
+    });
+    tskThreads(lead.b + lead.c, p.b + p.c).then((list) => {
+      const hit = list.find((r) => parseInt(r[0]) === lead.v && parseInt(r[1]) === p.v);
+      if (hit) row.insertAdjacentHTML('afterbegin',
+        '<span class="dlTsk">dos siglos de ensartadores también unieron este par · ' + hit[2] + '</span>');
+    });
+  });
 }
 function dlFinish(withNote) {
   const st = dlState();
@@ -685,6 +733,8 @@ function dlFinish(withNote) {
 document.getElementById('dlDone').addEventListener('click', () => dlFinish(true));
 document.getElementById('dlSkip').addEventListener('click', () => dlFinish(false));
 document.getElementById('dlBack').addEventListener('click', () => go('sIntro'));
+document.querySelectorAll('#dlTabs .fbtn').forEach((b) =>
+  b.addEventListener('click', () => dlTab(b.dataset.t)));
 
 function dailyGo() {
   waitReady(document.getElementById('startBtn'), openDaily);
