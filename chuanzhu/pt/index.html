@@ -428,18 +428,9 @@
       <div id="dlMain">
       <div id="dlLead"></div>
       <div id="dlChain"></div>
-      <div id="dlWrite" style="display:none">
-        <textarea id="dlReason" maxlength="200" placeholder="O que esta corrente trouxe a você hoje… (opcional — só você pode ver)"></textarea>
-        <div class="btnrow">
-          <button id="dlDone" class="gold">Enfie-a</button>
-          <button id="dlSkip" class="ghost">Enfiar sem Nota</button>
-        </div>
-      </div>
       <div id="dlReview" style="display:none">
-        <div id="dlMyReason"></div>
         <p class="hint">revisão da noite — leia mais uma vez; a luz da manhã ainda está aí?</p>
       </div>
-      <p class="hint" id="dlSaved" style="display:none">Marcado nos seus dias de enfiar · volte à noite para ler de novo</p>
       </div>
       <div id="dlRel" style="display:none"></div>
       <p class="hint" style="opacity:0.55; margin-top:1.2em">arranjo · Daily Light, 1875 — quatro gerações de trabalho manual</p>
@@ -637,11 +628,9 @@ function dlDateLabel(st) {
   return 'Diário · ' + DLMON[d.getMonth()] + ' ' + d.getDate() +
     (st.done ? ' · revisão' : '');
 }
-function dlRefresh(st, chain) {
-  $('dlWrite').style.display = st.done ? 'none' : '';
-  $('dlReview').style.display = st.done ? '' : 'none';
-  if (st.done) $('dlMyReason').textContent = st.reason ? '“' + st.reason + '”' : '';
-  $('dlDate').textContent = dlDateLabel(st);
+function dlRefresh(revisit) {
+  $('dlReview').style.display = revisit ? '' : 'none';
+  $('dlDate').textContent = dlDateLabel({ done: revisit });
 }
 function openDaily() {
   const rec = (window.DLIGHT || {})[dlKey() + 'am'];
@@ -656,11 +645,12 @@ function openDaily() {
   $('dlChain').innerHTML =
     '<div class="dlBody">' + chain.map((p) => dlText(p)).join(' — ') + '</div>' +
     '<p class="hint dlRefs">' + chain.map((p) => dlLabel(p)).join(' · ') + '</p>';
-  $('dlReason').value = '';
-  $('dlSaved').style.display = 'none';
   dlRelBuild(lead, chain);
   dlTab('main');
-  dlRefresh(st, chain);
+  const revisit = !!st.done;
+  st.done = 1;
+  dlSave(st);
+  dlRefresh(revisit);
   go('sDaily');
 }
 
@@ -695,27 +685,6 @@ function dlRelBuild(lead, chain) {
     });
   });
 }
-function dlFinish(withNote) {
-  const st = dlState();
-  if (st.done) return;
-  st.done = 1;
-  st.reason = withNote ? $('dlReason').value.trim().slice(0, 200) : '';
-  dlSave(st);
-  let days = {};
-  try { days = JSON.parse(localStorage.getItem('chuanzhu_days')) || {}; } catch (e) {}
-  days[localDayKey()] = (days[localDayKey()] || 0) + 1;
-  localStorage.setItem('chuanzhu_days', JSON.stringify(days));
-  let hist = [];
-  try { hist = JSON.parse(localStorage.getItem('chuanzhu_dailyhist')) || []; } catch (e) {}
-  hist.unshift({ d: localDayKey(), k: dlKey(), reason: st.reason });
-  localStorage.setItem('chuanzhu_dailyhist', JSON.stringify(hist.slice(0, 400)));
-  $('dlSaved').style.display = '';
-  const rec = (window.DLIGHT || {})[dlKey() + 'am'];
-  dlRefresh(st, rec.split('|')[1].split(';'));
-  updateIntroCount();
-}
-document.getElementById('dlDone').addEventListener('click', () => dlFinish(true));
-document.getElementById('dlSkip').addEventListener('click', () => dlFinish(false));
 document.getElementById('dlBack').addEventListener('click', () => go('sIntro'));
 document.querySelectorAll('#dlTabs .fbtn').forEach((b) =>
   b.addEventListener('click', () => dlTab(b.dataset.t)));
