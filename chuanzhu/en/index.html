@@ -270,9 +270,6 @@
       <div class="btnrow">
         <button id="readBtn" class="gold">Read Scripture</button>
       </div>
-      <div class="btnrow" style="margin-top:0.2em">
-        <button id="startBtn" class="goldline">The Daily String</button>
-      </div>
       <div class="btnrow" style="margin-top:0.1em">
         <button id="randBtn" class="goldline">A Random Bead</button>
       </div>
@@ -282,6 +279,9 @@
         <button class="fbtn" data-g="d">deep</button>
       </div>
       <p class="hint" id="drawDesc" style="display:none; margin-top:0.4em"></p>
+      <div class="btnrow" style="margin-top:0.2em">
+        <button id="startBtn" class="goldline">The Daily Portion</button>
+      </div>
       <div class="btnrow" id="contRow" style="margin-top:0.1em; display:none"></div>
       <div class="btnrow" style="margin-top:0.4em">
         <button id="notesBtn" class="ghost">My Workshop</button>
@@ -409,7 +409,7 @@
 
     <!-- notes -->
     <section id="sDaily" class="stage">
-      <div class="stageTitle">The Daily String</div>
+      <div class="stageTitle">The Daily Portion</div>
       <p class="hint" id="dlDate" style="margin-top:0"></p>
       <div id="dlLead"></div>
       <div id="dlChain"></div>
@@ -1255,7 +1255,7 @@ document.querySelectorAll('.lang').forEach(b => b.addEventListener('click', () =
   if (dlState().done) {
     $('startBtn').textContent = 'Tonight · Read It Again';
     document.querySelector('#sIntro .monk').innerHTML =
-      'Today’s chain is strung.<br>Come back tonight and read it once more.';
+      'Today’s portion is read.<br>Come back tonight and read it once more.';
   }
   const t = setInterval(() => {
     if (!beadsReady()) return;

@@ -268,9 +268,6 @@
       <div class="btnrow">
         <button id="readBtn" class="gold">读 经</button>
       </div>
-      <div class="btnrow" style="margin-top:0.2em">
-        <button id="startBtn" class="goldline">每 日 一 串</button>
-      </div>
       <div class="btnrow" style="margin-top:0.1em">
         <button id="randBtn" class="goldline">随 机 一 串</button>
       </div>
@@ -280,6 +277,9 @@
         <button class="fbtn" data-g="d">暗线</button>
       </div>
       <p class="hint" id="drawDesc" style="display:none; margin-top:0.4em"></p>
+      <div class="btnrow" style="margin-top:0.2em">
+        <button id="startBtn" class="goldline">每 日 功 课</button>
+      </div>
       <div class="btnrow" id="contRow" style="margin-top:0.1em; display:none"></div>
       <div class="btnrow" style="margin-top:0.4em">
         <button id="notesBtn" class="ghost">我 的 工 坊</button>
@@ -405,7 +405,7 @@
 
     <!-- 笔记 -->
     <section id="sDaily" class="stage">
-      <div class="stageTitle">每 日 一 串</div>
+      <div class="stageTitle">每 日 功 课</div>
       <p class="hint" id="dlDate" style="margin-top:0"></p>
       <div id="dlLead"></div>
       <div id="dlChain"></div>
@@ -1335,9 +1335,9 @@ document.querySelectorAll('.lang').forEach(b => b.addEventListener('click', () =
 // 同时：上一串的章还有未串的珠 → 亮出"继续串"入口
 {
   if (dlState().done) {
-    $('startBtn').textContent = '今 晚 · 回 顾 这 串';
+    $('startBtn').textContent = '今 晚 · 回 顾 功 课';
     document.querySelector('#sIntro .monk').innerHTML =
-      '今日的链已串成。<br>晚上回来，再读一遍。';
+      '今日的功课已做完。<br>晚上回来，再读一遍。';
   }
   const t = setInterval(() => {
     if (!beadsReady()) return;

@@ -270,9 +270,6 @@
       <div class="btnrow">
         <button id="readBtn" class="gold">Ler a Escritura</button>
       </div>
-      <div class="btnrow" style="margin-top:0.2em">
-        <button id="startBtn" class="goldline">O Fio Diário</button>
-      </div>
       <div class="btnrow" style="margin-top:0.1em">
         <button id="randBtn" class="goldline">Uma Conta ao Acaso</button>
       </div>
@@ -282,6 +279,9 @@
         <button class="fbtn" data-g="d">profundo</button>
       </div>
       <p class="hint" id="drawDesc" style="display:none; margin-top:0.4em"></p>
+      <div class="btnrow" style="margin-top:0.2em">
+        <button id="startBtn" class="goldline">A Porção Diária</button>
+      </div>
       <div class="btnrow" id="contRow" style="margin-top:0.1em; display:none"></div>
       <div class="btnrow" style="margin-top:0.4em">
         <button id="notesBtn" class="ghost">Minha Oficina</button>
@@ -409,7 +409,7 @@
 
     <!-- notes -->
     <section id="sDaily" class="stage">
-      <div class="stageTitle">O Fio Diário</div>
+      <div class="stageTitle">A Porção Diária</div>
       <p class="hint" id="dlDate" style="margin-top:0"></p>
       <div id="dlLead"></div>
       <div id="dlChain"></div>
@@ -1250,7 +1250,7 @@ document.querySelectorAll('.lang').forEach(b => b.addEventListener('click', () =
   if (dlState().done) {
     $('startBtn').textContent = 'Esta Noite · Leia de Novo';
     document.querySelector('#sIntro .monk').innerHTML =
-      'A corrente de hoje está enfiada.<br>Volte esta noite e leia mais uma vez.';
+      'A porção de hoje está lida.<br>Volte esta noite e leia mais uma vez.';
   }
   const t = setInterval(() => {
     if (!beadsReady()) return;
