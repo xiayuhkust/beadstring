@@ -204,6 +204,8 @@
 
 **读经横幅版（2026-07-23，v=202607230735，用户反馈迭代）**：① 沉浸方案从"渐隐边角"升级为**微读式顶部横幅**——`#chrome` 固定条从上滑下（translateY 过渡），收纳 回家/字−/字＋/账户 四钮；回家与账户图标由 JS 移入横幅（transform 祖先接管 fixed 定位→static 排布即可，账户图标 setInterval 等 account.js 注入后搬运）；点正文空白弹出/收起（body.chrome）。② **常驻两角**：章节胶囊居左上、串珠开关居右上（header 改 fixed flex space-between，main 加顶距）；修复了旧方案 A+ 仍可见的问题（根治：字号钮已进横幅）。③ **优先级下载**：dushu 珠库分片从静态标签改为**经文就绪后动态注入**（弱网先能读经；串珠开关/beads=1 入场立即触发注入防死锁；注入 src 写字面量路径让部署戳正则照常盖哈希）。④ 下载续传结论：**分片即断点**——SW 缓存优先下，已完成分片永久保存，中断后下次只补缺的分片，无需 Range 续传；Background Fetch API 仅 Chrome 支持不采用；再细的断点=改分片粒度（66 卷制），暂不做。jsdom 仿真 7 项全过。
 
+**开源发布（2026-07-23，用户定）**：**https://github.com/xiayuhkust/beadstring** 公开仓上线——非盈利项目尽可能开源。代码 MIT；**开放数据**：`data/export_community.py`（管理 API 拉取 is_public 且有理由的串档，**零用户标识**——无邮箱/id/署名，仅 pair_key/refs/reason/lang/日期/造就数）→ `data/community/community-strands.json`（CC BY-SA 4.0，定期运行+提交=一次数据发布）。用户知情：公开勾选文案追加「公开的理由会进入开放数据集」（四语），开场页页脚新增「开源代码 · 开放数据」链接。仓库含：全部页面/管道/66 卷线索引/设计文档/原型（wilderness/scene-lab/wall）；.gitignore 排除三个凭据 txt + dist* + .wrangler（已线上验证 404）。数据源许可表进 README（TSK CC-BY / KJV·和合本·RV1909 公版 / Bíblia Livre CC BY 3.0 BR）。同日：**工坊底部 Cloud Archive 区块移除**（账户统一右上角面板；account.js 以 isWorkshop 路径判断保留进门横幅/自动同步/拉新刷新），v=202607230806。
+
 ## 决策记录
 
 - 2026-07-20：确定方向——氛围场景 + 节奏引导 + 克制的激励；首个原型候选：烛光祷告室
