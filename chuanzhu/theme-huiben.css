@@ -204,3 +204,6 @@
   box-shadow: none; border-radius: 2em; color: #6b4f33; }
 [data-theme="huiben"] .amen.on { border-color: #dd9b30; color: #a2621c;
   background: rgba(240,169,46,0.16); }
+[data-theme="huiben"] .ctag { color: #a2621c; border-color: rgba(193,124,31,0.5); }
+[data-theme="huiben"] .tsubmit { background: none; box-shadow: none;
+  border: 1px dashed rgba(193,124,31,0.6); color: #a2621c; }

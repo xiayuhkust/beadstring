@@ -103,6 +103,14 @@
 
   /* chains */
   #dTsk { margin-top: 1em; }
+  .tline.comm { border-style: dashed; cursor: default; }
+  .ctag { font-size: 0.68em; color: #f5cd8a; opacity: 0.8; border: 1px solid rgba(245,205,138,0.4);
+    border-radius: 2em; padding: 0.05em 0.6em; }
+  .tsubmit { background: none; border: 1px dashed rgba(245,205,138,0.5); border-radius: 2em;
+    color: #f5cd8a; font-family: inherit; font-size: 0.76rem; cursor: pointer;
+    padding: 0.35em 1.2em; margin-top: 0.6em; opacity: 0.85; }
+  .tsubmit:hover { opacity: 1; }
+  .tsubmit[disabled] { cursor: default; opacity: 0.5; }
   .tpass { margin: 0.3em 0 0.5em; padding: 0.7em 1em; border-left: 2px solid rgba(245,205,138,0.4);
     font-size: 0.82rem; line-height: 2; opacity: 0.92; text-align: left; }
   .tpass b { color: #f5cd8a; font-weight: normal; }
@@ -624,6 +632,56 @@ function renderDetailNotes(str) {
   });
 }
 
+// community threads: list for everyone (tagged) + submit entry (offer the thread you strung)
+function refLbl(r) {
+  const q = r.match(/^([1-3]?[A-Za-z]+)(\d+):(.+)$/);
+  return q ? chLabel(q[1] + q[2]) + ':' + q[3] : r;
+}
+function strandThread(str, A, B) {
+  const vs = (str.refs || []).map((rf) => {
+    const q = String(rf).match(/(\d+):(\d+(?:-\d+)?)\s*$/);
+    return q ? q[2] : null;
+  });
+  if (!vs[0] || !vs[1]) return null;
+  let va = A + ':' + vs[0], vb = B + ':' + vs[1];
+  let key = [A, B].sort().join('|');
+  if (key.indexOf(A) !== 0) { const t = va; va = vb; vb = t; }
+  return { key: key, va: va, vb: vb };
+}
+function communityInto(box, A, B, str) {
+  const key = [A, B].sort().join('|');
+  const fin = () => {
+    const t = strandThread(str, A, B);
+    if (t && window.cloudSignedIn && window.cloudSignedIn()) {
+      box.insertAdjacentHTML('beforeend',
+        '<div><button class="tsubmit">Oferecer Este Fio à Comunidade</button></div>');
+      const btn = box.querySelector('.tsubmit');
+      btn.addEventListener('click', () => {
+        btn.disabled = true;
+        const words = {};
+        const m2 = metaOf(str);
+        if (m2 && m2.words && m2.words.length) words[document.documentElement.lang.slice(0, 2)] = m2.words;
+        window.cloudSubmitThread(t.key, t.va, t.vb, words).then((res) => {
+          btn.textContent = res === 'new' ? 'Oferecido — este fio agora está no conjunto da comunidade'
+            : res === 'second' ? 'O mesmo fio já existe — seu apoio foi contado'
+            : 'Something went wrong, try again';
+          if (res === 'err') btn.disabled = false;
+        });
+      });
+    }
+  };
+  if (!window.cloudThreads) { fin(); return; }
+  window.cloudThreads(key).then((rows) => {
+    if (curDetail !== str) return;
+    if (rows && rows.length) {
+      box.insertAdjacentHTML('beforeend',
+        rows.map((r) => '<div class="tline comm"><span>' + refLbl(r.verse_a) + ' ↔ ' +
+          refLbl(r.verse_b) + '</span><span class="ctag">comunidade</span></div>').join(''));
+    }
+    fin();
+  });
+}
+
 function renderDetailTsk(str) {
   const box = document.getElementById('dTsk');
   box.innerHTML = '';
@@ -632,13 +690,15 @@ function renderDetailTsk(str) {
   if (!w || w.length < 2) return;
   const A = w[0][0] + w[0][1], B = w[1][0] + w[1][1];
   tskThreads(A, B).then(list => {
-    if (!list.length || curDetail !== str) return;
-    box.innerHTML =
-      `<div class="hint" style="margin-top:0">Fios nesta conta · ${list.length} no TSK</div>` +
-      list.slice(0, 12).map(r =>
-        `<button class="tline" data-a="${A}:${r[0]}" data-b="${B}:${r[1]}">` +
-        `<span>${chLabel(A)}:${r[0]} ↔ ${chLabel(B)}:${r[1]}</span><span style="opacity:0.6">${r[2]}</span></button>`).join('') +
-      (list.length > 12 ? `<div class="hint">… e mais ${list.length - 12}</div>` : '');
+    if (curDetail !== str) return;
+    box.innerHTML = (list.length
+      ? `<div class="hint" style="margin-top:0">Fios nesta conta · ${list.length} no TSK</div>` +
+        list.slice(0, 12).map(r =>
+          `<button class="tline" data-a="${A}:${r[0]}" data-b="${B}:${r[1]}">` +
+          `<span>${chLabel(A)}:${r[0]} ↔ ${chLabel(B)}:${r[1]}</span><span style="opacity:0.6">${r[2]}</span></button>`).join('') +
+        (list.length > 12 ? `<div class="hint">… e mais ${list.length - 12}</div>` : '')
+      : '');
+    communityInto(box, A, B, str);
     box.querySelectorAll('.tline').forEach(el => el.addEventListener('click', () => {
       const nx = el.nextElementSibling;
       if (nx && nx.classList.contains('tpass')) { nx.remove(); return; }

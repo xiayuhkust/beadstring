@@ -146,6 +146,9 @@
     color: inherit; font-family: inherit; border-radius: 10px; padding: 0.5em 1em;
     margin: 0.45em 0 0; cursor: pointer; font-size: 0.8rem; letter-spacing: 0.05em; }
   .tline:hover { border-color: var(--gold-line); background: var(--card); }
+  .tline.comm { border-style: dashed; cursor: default; }
+  .ctag { font-size: 0.68em; color: #f5cd8a; opacity: 0.8; border: 1px solid rgba(245,205,138,0.4);
+    border-radius: 2em; padding: 0.05em 0.6em; }
   #knotNotes { max-width: 30em; margin: 0.4em auto 0; text-align: center; }
   .noteLink { background: none; border: none; cursor: pointer; font-family: inherit;
     color: #f5cd8a; opacity: 0.8; font-size: 0.78rem; letter-spacing: 0.05em;
@@ -898,6 +901,18 @@ function renderTskList() {
     box.style.display = '';
     box.querySelectorAll('.tline').forEach(el => el.addEventListener('click', () =>
       switchThread(el.dataset.a, el.dataset.b, +el.dataset.v || 0)));
+    // community threads alongside (tagged, read-only)
+    if (window.cloudThreads) {
+      const lb = (r) => { const q = r.match(/^([1-3]?[A-Za-z]+)(\d+):(.+)$/);
+        return q ? chLabel(q[1] + q[2]) + ':' + q[3] : r; };
+      window.cloudThreads([A, B].sort().join('|')).then((rows) => {
+        if (rows && rows.length && S.pair && S.pair.wall[0][0] + S.pair.wall[0][1] === A) {
+          box.insertAdjacentHTML('beforeend', rows.map((r) =>
+            '<div class="tline comm"><span>' + lb(r.verse_a) + ' ↔ ' + lb(r.verse_b) +
+            '</span><span class="ctag">community</span></div>').join(''));
+        }
+      });
+    }
   });
 }
 

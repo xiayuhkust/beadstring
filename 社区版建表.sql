@@ -119,3 +119,35 @@ as $$
 $$;
 revoke all on function public.bead_notes(text) from public;
 grant execute on function public.bead_notes(text) to anon, authenticated;
+
+-- ============ P2b 社区线（2026-07-23 已由管理 API 执行）============
+-- 线=节对（身份=归一化 OSIS 节引用，verse_a 归属 bead_key 键序靠前的章）；
+-- 同线唯一，重复提交记 thread_amens 附议；任何人可读，登录可写
+create table public.threads (
+  id bigint generated always as identity primary key,
+  bead_key text not null,
+  verse_a text not null,
+  verse_b text not null,
+  words jsonb not null default '{}',
+  creator uuid not null references auth.users(id) on delete cascade,
+  lang text not null default 'en',
+  status text not null default 'live',
+  created_at timestamptz not null default now(),
+  unique (bead_key, verse_a, verse_b)
+);
+alter table public.threads enable row level security;
+create policy "threads_select_all" on public.threads for select using (true);
+create policy "threads_insert_own" on public.threads for insert with check (auth.uid() = creator);
+create policy "threads_delete_own" on public.threads for delete using (auth.uid() = creator);
+create index threads_bead_idx on public.threads (bead_key);
+
+create table public.thread_amens (
+  thread_id bigint not null references public.threads(id) on delete cascade,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  created_at timestamptz not null default now(),
+  primary key (thread_id, user_id)
+);
+alter table public.thread_amens enable row level security;
+create policy "thread_amens_select_all" on public.thread_amens for select using (true);
+create policy "thread_amens_insert_own" on public.thread_amens for insert with check (auth.uid() = user_id);
+create policy "thread_amens_delete_own" on public.thread_amens for delete using (auth.uid() = user_id);

@@ -360,6 +360,29 @@
     return q.then(({ error }) => !error);
   };
   window.cloudSignedIn = function () { return !!(client && me); };
+  // 社区线：读（任何人，轻量 REST）；提交（登录）——同线已存在则记一票附议
+  window.cloudThreads = function (beadKey) {
+    return fetch(SUPA_URL + '/rest/v1/threads?select=id,verse_a,verse_b,words,lang' +
+      '&bead_key=eq.' + encodeURIComponent(beadKey) + '&status=eq.live&order=created_at',
+      { headers: { apikey: SUPA_KEY, Authorization: 'Bearer ' + SUPA_KEY } })
+      .then((r) => (r.ok ? r.json() : null)).catch(() => null);
+  };
+  window.cloudSubmitThread = function (beadKey, va, vb, words) {
+    if (!client || !me) return Promise.resolve('signin');
+    return client.from('threads').insert({
+      bead_key: beadKey, verse_a: va, verse_b: vb,
+      words: words || {}, creator: me.id, lang: LANG,
+    }).then(({ error }) => {
+      if (!error) return 'new';
+      if (error.code !== '23505') return 'err';
+      return client.from('threads').select('id')
+        .eq('bead_key', beadKey).eq('verse_a', va).eq('verse_b', vb).single()
+        .then(({ data }) => (data
+          ? client.from('thread_amens').insert({ thread_id: data.id, user_id: me.id })
+              .then(({ error: e2 }) => ((!e2 || e2.code === '23505') ? 'second' : 'err'))
+          : 'err'));
+    });
+  };
 
   // 首屏：有会话或魔法链接回跳 → 立即加载库；否则骨架即可（点开图标再加载）
   viewSignedOut();
