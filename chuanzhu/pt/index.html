@@ -152,6 +152,11 @@
   .ctag { font-size: 0.68em; color: #7ec8b1; opacity: 0.9; border: 1px solid rgba(126,200,177,0.5);
     border-radius: 2em; padding: 0.05em 0.6em; }
   .chead { color: #7ec8b1; opacity: 0.8; }
+  .gtag { font-style: normal; font-size: 0.68em; border-radius: 2em; padding: 0.05em 0.55em;
+    margin-right: 0.5em; }
+  .gtag.b { color: #f5cd8a; border: 1px solid rgba(245,205,138,0.45); }
+  .gtag.d { color: #b3a5e8; border: 1px solid rgba(179,165,232,0.5); }
+  .drawRow { display: flex; gap: 0.5em; justify-content: center; margin: 0.45em 0 0; }
   .tflt { display: flex; gap: 0.5em; justify-content: center; margin: 0.8em 0 0.2em; }
   .fbtn { font-family: inherit; font-size: 0.72rem; letter-spacing: 0.08em; padding: 0.28em 1em;
     border-radius: 2em; background: none; color: inherit; opacity: 0.55;
@@ -256,6 +261,12 @@
       <div class="btnrow" style="margin-top:0.1em">
         <button id="randBtn" class="goldline">Uma Conta ao Acaso</button>
       </div>
+      <div class="drawRow" id="drawRow">
+        <button class="fbtn on" data-g="">tudo</button>
+        <button class="fbtn" data-g="b">claro</button>
+        <button class="fbtn" data-g="d">profundo</button>
+      </div>
+      <p class="hint" id="drawDesc" style="display:none; margin-top:0.4em"></p>
       <div class="btnrow" id="contRow" style="margin-top:0.1em; display:none"></div>
       <div class="btnrow" style="margin-top:0.4em">
         <button id="notesBtn" class="ghost">Minha Oficina</button>
@@ -399,6 +410,7 @@
 <script src="../data/books-pt.js" async></script>
 <script src="../data/beads-en-1.js" async></script>
 <script src="../data/beads-en-2.js" async></script>
+<script src="../data/beads-grade-en.js" async></script>
 <script>
 // ================================================================ data
 // Bead pairs from TSK / OpenBible.info cross-references (CC-BY); text: KJV (public domain)
@@ -598,11 +610,35 @@ function chLabel(chId) {
   return m ? `${SN(m[1])} ${m[2]}` : chId;
 }
 
+// draw modes: any / bright / deep (auto-catalogued, not authoritative)
+let drawMode = localStorage.getItem('chuanzhu_draw') || '';
+const DRAW_DESC = { b: 'claro — as duas passagens compartilham as mesmas palavras, à vista de todos',
+                    d: 'profundo — quase sem palavras em comum; o vínculo se esconde sob a superfície' };
+function drawModeUI() {
+  document.querySelectorAll('#drawRow .fbtn').forEach((x) =>
+    x.classList.toggle('on', x.dataset.g === drawMode));
+  const d = document.getElementById('drawDesc');
+  d.textContent = DRAW_DESC[drawMode] || '';
+  d.style.display = DRAW_DESC[drawMode] ? '' : 'none';
+}
+document.querySelectorAll('#drawRow .fbtn').forEach((b) => b.addEventListener('click', () => {
+  drawMode = b.dataset.g;
+  localStorage.setItem('chuanzhu_draw', drawMode);
+  drawModeUI();
+}));
+drawModeUI();
+
 // a random unstrung bead (3+ votes for a quality floor)
 function randomGo(btn) {
   waitReady(btn || document.getElementById('randBtn'), () => {
     const strung = strungKeys();
-    let pool = window.BEADS.filter(r => r[2] >= 3 && !strung.has([r[0], r[1]].sort().join('|')));
+    let pool = [];
+    for (let i = 0; i < window.BEADS.length; i++) {
+      const r = window.BEADS[i];
+      if (r[2] < 3 || strung.has([r[0], r[1]].sort().join('|'))) continue;
+      if (drawMode && (!window.BGRADE || window.BGRADE[i] !== drawMode)) continue;
+      pool.push(r);
+    }
     if (!pool.length) pool = window.BEADS;
     goBead(pool[Math.floor(Math.random() * pool.length)]);
   });
@@ -794,15 +830,17 @@ $('revealBtn').addEventListener('click', () => {
 
 // ---- TSK verse-level threads (v2 index: tsk/<OSIS>.js, per-book, loaded on demand) ----
 const TSKQ = {};
+const TSKV = '202607231320';   // tsk 分片版本：重产分片时手动更新
 function tskFetch(file) {
   if (!TSKQ[file]) TSKQ[file] = new Promise(res => {
     const sc = document.createElement('script');
-    sc.src = '../data/tsk/' + file + '.js';
+    sc.src = '../data/tsk/' + file + '.js?v=' + TSKV;
     sc.onload = () => res(); sc.onerror = () => res();
     document.head.appendChild(sc);
   });
   return TSKQ[file];
 }
+const gt = (g) => g === 'b' ? '<i class="gtag b">claro</i>' : g === 'd' ? '<i class="gtag d">profundo</i>' : '';
 function tskThreads(chA, chB) {   // OSIS chapter ids; returns [[vA, vB, votes], ...] by votes
   const bA = (chA.match(/^([1-3]?[A-Za-z]+)/) || [])[1];
   const bB = (chB.match(/^([1-3]?[A-Za-z]+)/) || [])[1];
@@ -822,7 +860,7 @@ function tskThreads(chA, chB) {   // OSIS chapter ids; returns [[vA, vB, votes],
         const va = flip ? mm[2] : fv[1], vb = flip ? fv[1] : mm[2];
         if (seen.has(va + '|' + vb)) continue;
         seen.add(va + '|' + vb);
-        out.push([va, vb, +p[2]]);
+        out.push([va, vb, +p[2], p[3] || '']);
       }
     };
     scan(bA, chA, chB, false);
@@ -919,7 +957,7 @@ function renderTskList() {
       `<div class="hint thint" style="margin-top:0">Fios nesta conta · ${list.length} no TSK</div>` +
       list.slice(0, 24).map(r =>
         `<button class="tline tsk" data-a="${A}:${r[0]}" data-b="${B}:${r[1]}" data-v="${r[2]}">` +
-        `<span>${chLabel(A)}:${r[0]} ↔ ${chLabel(B)}:${r[1]}</span><span style="opacity:0.6">${r[2]}</span></button>`).join('') +
+        `<span>${chLabel(A)}:${r[0]} ↔ ${chLabel(B)}:${r[1]}</span><span>${gt(r[3])}<span style="opacity:0.6">${r[2]}</span></span></button>`).join('') +
       (list.length > 24 ? `<div class="hint thint">… e mais ${list.length - 24}</div>` : '');
     box.style.display = '';
     box.querySelectorAll('.tline').forEach(el => el.addEventListener('click', () =>

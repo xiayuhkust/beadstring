@@ -43,6 +43,15 @@ def to_compact(s):
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(HERE, 'tsk')
+
+# 难度档位（grade.py 产出；b 明线 / d 暗线，缺省=平）
+GRADES = {}
+_gp = os.path.join(HERE, 'grades.tsv')
+if os.path.exists(_gp):
+    with open(_gp, encoding='utf-8') as f:
+        for line in f:
+            a, b, g = line.rstrip('\n').split('\t')
+            GRADES[(a, b)] = g
 os.makedirs(OUT, exist_ok=True)
 
 rows = kept = 0
@@ -67,13 +76,13 @@ with open(os.path.join(HERE, 'cross_references.txt'), encoding='utf-8') as f:
             continue
         if fb == tb and fc == tc:
             continue
-        books[fb].append((fc, fv, to_compact(cols[1]), votes))
+        books[fb].append((fc, fv, to_compact(cols[1]), votes, GRADES.get((cols[0], cols[1]), '')))
         kept += 1
 
 total_bytes = 0
 for code, _, _ in OSIS:
     lst = sorted(books.get(code, []), key=lambda r: (r[0], r[1], -r[3]))
-    body = ';'.join(f'{c}:{v}|{to}|{vt}' for c, v, to, vt in lst)
+    body = ';'.join(f'{c}:{v}|{to}|{vt}' + (f'|{g}' if g else '') for c, v, to, vt, g in lst)
     js = f"window.TSKX=window.TSKX||{{}};window.TSKX['{code}']='{body}';\n"
     path = os.path.join(OUT, f'{code}.js')
     with open(path, 'w', encoding='utf-8') as f:

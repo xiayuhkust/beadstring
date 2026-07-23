@@ -117,6 +117,10 @@
   .ctag { font-size: 0.68em; color: #7ec8b1; opacity: 0.9; border: 1px solid rgba(126,200,177,0.5);
     border-radius: 2em; padding: 0.05em 0.6em; }
   .chead { color: #7ec8b1; opacity: 0.8; }
+  .gtag { font-style: normal; font-size: 0.68em; border-radius: 2em; padding: 0.05em 0.55em;
+    margin-right: 0.5em; }
+  .gtag.b { color: #f5cd8a; border: 1px solid rgba(245,205,138,0.45); }
+  .gtag.d { color: #b3a5e8; border: 1px solid rgba(179,165,232,0.5); }
   .tflt { display: flex; gap: 0.5em; justify-content: center; margin: 0.8em 0 0.2em; }
   .fbtn { font-family: inherit; font-size: 0.72rem; letter-spacing: 0.08em; padding: 0.28em 1em;
     border-radius: 2em; background: none; color: inherit; opacity: 0.55;
@@ -561,15 +565,17 @@ function passageHTML(s, i) {
 
 // ---- TSK 节级线索（v2 索引：tsk/<OSIS>.js 按卷按需加载，语言无关，zh 经 zhmap 渲染）----
 const TSKQ = {};
+const TSKV = '202607231320';   // tsk 分片版本：重产分片时手动更新
 function tskFetch(file) {
   if (!TSKQ[file]) TSKQ[file] = new Promise(res => {
     const sc = document.createElement('script');
-    sc.src = '../data/tsk/' + file + '.js';
+    sc.src = '../data/tsk/' + file + '.js?v=' + TSKV;
     sc.onload = () => res(); sc.onerror = () => res();
     document.head.appendChild(sc);
   });
   return TSKQ[file];
 }
+const gt = (g) => g === 'b' ? '<i class="gtag b">明</i>' : g === 'd' ? '<i class="gtag d">暗</i>' : '';
 function tskThreads(chA, chB) {
   const bA = (chA.match(/^([1-3]?[A-Za-z]+)/) || [])[1];
   const bB = (chB.match(/^([1-3]?[A-Za-z]+)/) || [])[1];
@@ -589,7 +595,7 @@ function tskThreads(chA, chB) {
         const va = flip ? mm[2] : fv[1], vb = flip ? fv[1] : mm[2];
         if (seen.has(va + '|' + vb)) continue;
         seen.add(va + '|' + vb);
-        out.push([va, vb, +p[2]]);
+        out.push([va, vb, +p[2], p[3] || '']);
       }
     };
     scan(bA, chA, chB, false);
@@ -792,7 +798,7 @@ function renderDetailTsk(str) {
         ? `<div class="hint thint" style="margin-top:0">这颗珠上的线 · TSK 共 ${list.length} 条</div>` +
           list.slice(0, 12).map(r =>
             `<button class="tline tsk" data-a="${zhA}:${r[0]}" data-b="${zhB}:${r[1]}">` +
-            `<span>${zhA}:${r[0]} ↔ ${zhB}:${r[1]}</span><span style="opacity:0.6">${r[2]}</span></button>`).join('') +
+            `<span>${zhA}:${r[0]} ↔ ${zhB}:${r[1]}</span><span>${gt(r[3])}<span style="opacity:0.6">${r[2]}</span></span></button>`).join('') +
           (list.length > 12 ? `<div class="hint thint">……还有 ${list.length - 12} 条</div>` : '')
         : '');
       communityInto(box, A, B, str, list);

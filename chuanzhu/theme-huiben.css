@@ -218,3 +218,5 @@
   border: 1px solid rgba(90,61,34,0.35); }
 [data-theme="huiben"] .fbtn.on { border-color: #dd9b30; }
 [data-theme="huiben"] .fbtn.on[data-f="comm"] { border-color: rgba(46,125,100,0.7); }
+[data-theme="huiben"] .gtag.b { color: #a2621c; border-color: rgba(193,124,31,0.5); }
+[data-theme="huiben"] .gtag.d { color: #6b5bb5; border-color: rgba(107,91,181,0.5); }
