@@ -85,7 +85,11 @@
     try { return Object.keys(localStorage).some((k) => /^sb-.+-auth-token$/.test(k)); }
     catch (_) { return false; }
   }
-  function markIcon() { ico.classList.toggle('in', !!me || (!client && hasToken())); }
+  function markIcon() {
+    let anonFlag = false;
+    try { anonFlag = localStorage.getItem('chuanzhu_anon') === '1'; } catch (_) {}
+    ico.classList.toggle('in', (!!me && !me.is_anonymous) || (!client && hasToken() && !anonFlag));
+  }
 
   // 工坊进门横幅（未登录才出现）
   let bar = null;
@@ -321,6 +325,9 @@
   function enter(user, doSync) {
     if (me && me.id === user.id) return;
     me = user;
+    // 匿名影子会话：只用于点赞，不进登录视图、不同步、不亮金点
+    if (user.is_anonymous) { try { localStorage.setItem('chuanzhu_anon', '1'); } catch (_) {} markIcon(); return; }
+    try { localStorage.removeItem('chuanzhu_anon'); } catch (_) {}
     viewSignedIn(doSync ? T.syncing : '');
     if (doSync) runSync(false);
   }
@@ -351,15 +358,23 @@
       body: JSON.stringify({ p_pair_key: pairKey }),
     }).then((r) => (r.ok ? r.json() : null)).catch(() => null);
   };
-  // 造就了我：登录后可点/可收回
-  window.cloudAmen = function (sid, on) {
-    if (!client || !me) return Promise.resolve(false);
+  // 造就了我：任何访客可点——未登录时静默创建匿名影子会话（不新建内容，只记这一票）
+  window.cloudAmen = async function (sid, on) {
+    await ensureLib();
+    if (!client) return false;
+    let uid = me && me.id;
+    if (!uid) {
+      const { data, error } = await client.auth.signInAnonymously();
+      if (error || !data || !data.user) return false;
+      uid = data.user.id;
+    }
     const q = on
-      ? client.from('amens').insert({ strand_id: sid, user_id: me.id })
-      : client.from('amens').delete().eq('strand_id', sid).eq('user_id', me.id);
-    return q.then(({ error }) => !error);
+      ? client.from('amens').insert({ strand_id: sid, user_id: uid })
+      : client.from('amens').delete().eq('strand_id', sid).eq('user_id', uid);
+    const { error: e2 } = await q;
+    return !e2 || e2.code === '23505';
   };
-  window.cloudSignedIn = function () { return !!(client && me); };
+  window.cloudSignedIn = function () { return !!(client && me && !me.is_anonymous); };
   // 社区线：读（任何人，轻量 REST）；提交（登录）——同线已存在则记一票附议
   window.cloudThreads = function (beadKey) {
     return fetch(SUPA_URL + '/rest/v1/threads?select=id,verse_a,verse_b,words,lang' +
@@ -368,7 +383,7 @@
       .then((r) => (r.ok ? r.json() : null)).catch(() => null);
   };
   window.cloudSubmitThread = function (beadKey, va, vb, words) {
-    if (!client || !me) return Promise.resolve('signin');
+    if (!client || !me || me.is_anonymous) return Promise.resolve('signin');
     return client.from('threads').insert({
       bead_key: beadKey, verse_a: va, verse_b: vb,
       words: words || {}, creator: me.id, lang: LANG,

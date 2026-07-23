@@ -647,7 +647,7 @@ const esc = (t) => String(t).replace(/[&<>"']/g,
 // 众人的注脚（P2b）：任何人可看，默认折叠成一行（保留"先自己想"的摩擦）；按造就数排序
 // UGC 一律转义
 function notesHTML(rows) {
-  const canAmen = window.cloudSignedIn && window.cloudSignedIn();
+  const canAmen = true; // 游客也可点——cloudAmen 会静默建匿名会话
   return rows.map((r) => '<div class="dnote">「' + esc(r.reason) + '」' +
     '<span>—— ' + esc(r.display_name || '无名') + ' · ' + esc(r.strung_on || '') +
     ' <button class="amen' + (r.mine ? ' on' : '') + '" data-sid="' + (+r.sid) + '"' +

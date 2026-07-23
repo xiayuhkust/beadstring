@@ -825,7 +825,7 @@ function tskThreads(chA, chB) {   // OSIS chapter ids; returns [[vA, vB, votes],
 const esc = (t) => String(t).replace(/[&<>"']/g,
   (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 function notesHTML(rows) {
-  const canAmen = window.cloudSignedIn && window.cloudSignedIn();
+  const canAmen = true; // 游客也可点——cloudAmen 会静默建匿名会话
   return rows.map((r) => '<div class="dnote">“' + esc(r.reason) + '”' +
     '<span>— ' + esc(r.display_name || 'anônimo') + ' · ' + esc(r.strung_on || '') +
     ' <button class="amen' + (r.mine ? ' on' : '') + '" data-sid="' + (+r.sid) + '"' +

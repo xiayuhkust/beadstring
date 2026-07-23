@@ -7,7 +7,16 @@
 const ASSETS = 'bs-assets-v1';
 const PAGES = 'bs-pages-v1';
 
-self.addEventListener('install', () => self.skipWaiting());
+// 安装即预缓存页面骨架：弱网/断网下导航不再落到浏览器"没有连接"页，
+// 而是页面照常打开、由页内进度提示接管（数据分片另有缓存优先策略）
+const CORE = ['index.html', 'dushu.html', 'gongfang.html', 'shujia.html',
+              'tokens.css', 'theme-huiben.css', 'account.js'];
+self.addEventListener('install', (e) => {
+  e.waitUntil((async () => {
+    try { await (await caches.open(PAGES)).addAll(CORE); } catch (err) {}
+    await self.skipWaiting();
+  })());
+});
 self.addEventListener('activate', (e) => {
   e.waitUntil((async () => {
     // 清掉未来可能废弃的旧版缓存桶
@@ -34,7 +43,9 @@ self.addEventListener('fetch', (e) => {
         if (r.ok) (await caches.open(PAGES)).put(req, r.clone());
         return r;
       } catch (err) {
-        const hit = await caches.match(req, { ignoreSearch: true });
+        const hit = await caches.match(req, { ignoreSearch: true })
+          || await caches.match(url.pathname)
+          || (url.pathname.endsWith('/') ? await caches.match(url.pathname + 'index.html') : null);
         if (hit) return hit;
         throw err;
       }
@@ -45,7 +56,15 @@ self.addEventListener('fetch', (e) => {
   e.respondWith((async () => {
     const hit = await caches.match(req);
     if (hit) return hit;
-    const r = await fetch(req);
+    let r;
+    try {
+      r = await fetch(req);
+    } catch (err) {
+      // 断网回退：允许忽略 ?v= 取略旧副本（有总比没有强）
+      const stale = await caches.match(req, { ignoreSearch: true });
+      if (stale) return stale;
+      throw err;
+    }
     if (r.ok) {
       const cache = await caches.open(ASSETS);
       // 同路径旧戳条目清理（?v= 换代时不积垃圾）

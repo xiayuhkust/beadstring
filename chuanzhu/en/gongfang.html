@@ -595,7 +595,7 @@ const esc = (t) => String(t).replace(/[&<>"']/g,
 // notes from others (P2b): open to everyone, collapsed behind a link (keeps the think-first friction)
 // UGC always escaped
 function notesHTML(rows) {
-  const canAmen = window.cloudSignedIn && window.cloudSignedIn();
+  const canAmen = true; // 游客也可点——cloudAmen 会静默建匿名会话
   return rows.map((r) => '<div class="dnote">“' + esc(r.reason) + '”' +
     '<span>— ' + esc(r.display_name || 'anonymous') + ' · ' + esc(r.strung_on || '') +
     ' <button class="amen' + (r.mine ? ' on' : '') + '" data-sid="' + (+r.sid) + '"' +
