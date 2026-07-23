@@ -648,13 +648,22 @@ function strandThread(str, A, B) {
   if (key.indexOf(A) !== 0) { const t = va; va = vb; vb = t; }
   return { key: key, va: va, vb: vb };
 }
-function communityInto(box, A, B, str) {
+function communityInto(box, A, B, str, tskList) {
   const key = [A, B].sort().join('|');
   const fin = () => {
     const t = strandThread(str, A, B);
-    if (t && window.cloudSignedIn && window.cloudSignedIn()) {
+    // only shown when meaningful: (1) the chapter pair is new to TSK, or (2) the verse pair is
+    // (a thread identical to TSK has nothing to offer; first-verse compare tolerates expansion)
+    const vs = (str.refs || []).map((rf) => {
+      const q = String(rf).match(/(\d+):(\d+)/); return q ? +q[2] : null;
+    });
+    const inTsk = (tskList || []).some((r) => parseInt(r[0]) === vs[0] && parseInt(r[1]) === vs[1]);
+    if (t && !inTsk && window.cloudSignedIn && window.cloudSignedIn()) {
+      const label = (tskList && tskList.length)
+        ? 'Ofrecer Este Hilo Nuevo a la Comunidad'
+        : 'Un Par Nuevo · Ofrecer Esta Cuenta a la Comunidad';
       box.insertAdjacentHTML('beforeend',
-        '<div><button class="tsubmit">Ofrecer Este Hilo a la Comunidad</button></div>');
+        '<div><button class="tsubmit">' + label + '</button></div>');
       const btn = box.querySelector('.tsubmit');
       btn.addEventListener('click', () => {
         btn.disabled = true;
@@ -698,7 +707,7 @@ function renderDetailTsk(str) {
           `<span>${chLabel(A)}:${r[0]} ↔ ${chLabel(B)}:${r[1]}</span><span style="opacity:0.6">${r[2]}</span></button>`).join('') +
         (list.length > 12 ? `<div class="hint">… y ${list.length - 12} más</div>` : '')
       : '');
-    communityInto(box, A, B, str);
+    communityInto(box, A, B, str, list);
     box.querySelectorAll('.tline').forEach(el => el.addEventListener('click', () => {
       const nx = el.nextElementSibling;
       if (nx && nx.classList.contains('tpass')) { nx.remove(); return; }
