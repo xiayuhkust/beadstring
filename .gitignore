@@ -14,3 +14,25 @@ node_modules/
 Thumbs.db
 .DS_Store
 .wrangler/
+
+# 内部设计文档与历史原型（本地保留，不入公开仓）
+BRAINSTORM.md
+串珠玩法设计.md
+划分与系列总览.md
+可获取题库盘点.md
+国际化与社区版路线图.md
+圣经划分方式调查.md
+支付渠道调查.md
+救恩故事线选段.md
+界面风格研究计划.md
+示范题_约拿书.md
+积累与展示设计.md
+题库设计与来源.md
+登录邮件模板.html
+wilderness/
+scene-lab/
+wall/
+data/sample.txt
+data/stats.txt
+data/mic_jas.txt
+data/cross-references.zip

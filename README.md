@@ -58,8 +58,6 @@ data/                pipelines + generated shards
   community/                        published open dataset (CC BY-SA 4.0)
 社区版建表.sql        Supabase schema: profiles / strands / states / amens + RLS + bead_notes()
 deploy.ps1           build dist-cf and deploy to Cloudflare Pages (reads untracked cloudflare.txt)
-*.md                 design notes & decision log (Chinese) — BRAINSTORM.md is the index
-wilderness/ scene-lab/ wall/   earlier prototypes, kept for the record
 ```
 
 The app is plain HTML/CSS/JS — open `chuanzhu/index.html` from a local server and
