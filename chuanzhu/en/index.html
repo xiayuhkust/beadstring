@@ -175,6 +175,17 @@
   .dlBody { max-width: 34em; margin: 0.9em auto; text-align: left; line-height: 2.1;
     font-size: 0.92rem; }
   .dlRefs { opacity: 0.55; letter-spacing: 0.05em; }
+  #flowBack { position: fixed; top: calc(0.55em + env(safe-area-inset-top, 0px)); left: 0.8em;
+    z-index: 60; width: 2.3em; height: 2.3em; border-radius: 50%; display: none;
+    background: rgba(0,0,0,0.25); border: 1px solid rgba(253,243,227,0.28);
+    color: inherit; font-family: inherit; font-size: 1rem; cursor: pointer; opacity: 0.8; }
+  #flowBack:hover { opacity: 1; }
+  body.inflow #flowBack { display: block; }
+  .dlLink.done { border-style: solid; border-color: rgba(245,205,138,0.85);
+    color: #ffe9bd; background: rgba(245,205,138,0.08); }
+  #sameChRow button, #doneReadRow button { font-size: 0.68rem; opacity: 0.55;
+    padding: 0.45em 1.1em; }
+  #sameChRow button:hover, #doneReadRow button:hover { opacity: 0.9; }
   .dlLink { display: block; width: 100%; text-align: center; cursor: pointer;
     font-family: inherit; color: #f5cd8a; font-size: 0.78rem; letter-spacing: 0.1em;
     background: none; border: 1px dashed rgba(245,205,138,0.45); border-radius: 10px;
@@ -261,6 +272,7 @@
 
   <main>
     <!-- intro -->
+    <button id="flowBack" aria-label="back">←</button>
     <section id="sIntro" class="stage on">
       <h1>BeadString</h1>
       <p class="sub">Handcraft of the Wilderness</p>
@@ -576,6 +588,7 @@ function buildDynamicPair(qs) {
 // URL carries a bead: skip the intro, breathe, then string
 const QS = new URLSearchParams(location.search);
 if (QS.get('a') && QS.get('b')) window.AUTOSTART = true;
+if (QS.get('dl') === 'rel') waitReady(null, () => openDaily('rel'));
 
 // today's bead: date-seeded pick from the library - same bead for everyone, every day
 function dailySeed() {
@@ -638,7 +651,7 @@ function dlRefresh(revisit) {
   $('dlReview').style.display = revisit ? '' : 'none';
   $('dlDate').textContent = dlDateLabel({ done: revisit });
 }
-function openDaily() {
+function openDaily(tab) {
   const rec = (window.DLIGHT || {})[dlKey() + 'am'];
   if (!rec) return;
   const st = dlState();
@@ -652,7 +665,7 @@ function openDaily() {
     '<div class="dlBody">' + chain.map((p) => dlText(p)).join(' — ') + '</div>' +
     '<p class="hint dlRefs">' + chain.map((p) => dlLabel(p)).join(' · ') + '</p>';
   dlRelBuild(lead, chain);
-  dlTab('main');
+  dlTab(tab || 'main');
   const revisit = !!st.done;
   st.done = 1;
   dlSave(st);
@@ -679,10 +692,11 @@ function dlRelBuild(lead, chain) {
   chain.forEach((p, i) => {
     const row = box.querySelector('.dlRelRow[data-i="' + i + '"]');
     if (p.b + p.c === leadCh) return;
-    row.innerHTML = '<button class="dlLink">＋ Join the Lead to This Verse</button>';
+    const done = strungKeys().has([leadCh, p.b + p.c].sort().join('|'));
+    row.innerHTML = '<button class="dlLink' + (done ? ' done' : '') + '">' + (done ? '✓ ' : '') + '＋ Join the Lead to This Verse</button>';
     row.querySelector('.dlLink').addEventListener('click', () => {
       location.href = 'index.html?a=' + encodeURIComponent(lead.b + lead.c + ':' + lead.v) +
-        '&b=' + encodeURIComponent(p.b + p.c + ':' + p.v) + '&v=0&n=0';
+        '&b=' + encodeURIComponent(p.b + p.c + ':' + p.v) + '&v=0&n=0&back=rel';
     });
     tskThreads(lead.b + lead.c, p.b + p.c).then((list) => {
       const hit = list.find((r) => parseInt(r[0]) === lead.v && parseInt(r[1]) === p.v);
@@ -692,6 +706,12 @@ function dlRelBuild(lead, chain) {
   });
 }
 document.getElementById('dlBack').addEventListener('click', () => go('sIntro'));
+document.getElementById('flowBack').addEventListener('click', () => {
+  const bk = QS.get('back');
+  if (bk === 'du') { location.href = 'dushu.html'; return; }
+  if (bk === 'rel') { location.href = 'index.html?dl=rel'; return; }
+  go('sIntro');
+});
 document.querySelectorAll('#dlTabs .fbtn').forEach((b) =>
   b.addEventListener('click', () => dlTab(b.dataset.t)));
 
@@ -830,9 +850,11 @@ function lightWall(pair) {
 // ================================================================ stages
 
 const $ = (id) => document.getElementById(id);
+const FLOW = { sBreath: 1, sArrive: 1, sBeadA: 1, sBeadB: 1, sFind: 1, sKnot: 1, sDone: 1 };
 function go(id) {
   document.querySelectorAll('.stage').forEach(s => s.classList.remove('on'));
   $(id).classList.add('on');
+  document.body.classList.toggle('inflow', !!FLOW[id]);
   window.scrollTo(0, 0);
 }
 

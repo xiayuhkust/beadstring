@@ -220,3 +220,7 @@
 [data-theme="huiben"] .fbtn.on[data-f="comm"] { border-color: rgba(46,125,100,0.7); }
 [data-theme="huiben"] .gtag.b { color: #a2621c; border-color: rgba(193,124,31,0.5); }
 [data-theme="huiben"] .gtag.d { color: #6b5bb5; border-color: rgba(107,91,181,0.5); }
+[data-theme="huiben"] #flowBack { background: rgba(255,253,244,0.8); box-shadow: none;
+  border: 1px solid rgba(90,61,34,0.35); }
+[data-theme="huiben"] .dlLink.done { border-color: #dd9b30; color: #a2621c;
+  background: rgba(240,169,46,0.12); }
