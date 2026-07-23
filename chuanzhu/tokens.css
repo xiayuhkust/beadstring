@@ -1,0 +1,74 @@
+/* 串珠 · 设计令牌（旷野之夜）
+   命名取自题材：羊皮纸的字、金线、烧红的珠、夜色的卡
+   原则：金=线与珠（稀缺才神圣）；每屏只有一件实心金物件（主行动） */
+:root {
+  --ink:        #f7ecd9;                   /* 羊皮纸白（正文） */
+  --ink-dim:    rgba(247,236,217,0.75);
+  --ink-faint:  rgba(247,236,217,0.58);
+  --gold:       #f0c987;                   /* 金线 */
+  --gold-deep:  #d9a05a;
+  --ember:      #e8a75c;                   /* 珠橙 */
+  --gold-line:  rgba(240,201,135,0.9);
+  --line:       rgba(247,236,217,0.85);    /* 常规描边 */
+  --line-soft:  rgba(247,236,217,0.55);
+  --card:       rgba(22,14,10,0.62);       /* 夜色卡底 */
+  --card-line:  rgba(247,236,217,0.22);
+  --surface:    rgba(247,236,217,0.13);    /* 次级按钮底 */
+  --surface-hover: rgba(247,236,217,0.22);
+}
+
+/* 键盘焦点可见（质量底线） */
+:where(button, a, [tabindex]):focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
+/* 尊重减动效偏好 */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* 角落图标按钮（左上=回主页；右上=皮肤/语言） */
+.iconBtn { position: fixed; z-index: 46; width: 2.5em; height: 2.5em; padding: 0;
+  border-radius: 50%; border: 1px solid var(--line-soft);
+  background: rgba(20,13,9,0.45); color: var(--ink);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; backdrop-filter: blur(3px); opacity: 0.85;
+  transition: opacity 0.3s, background 0.3s; }
+.iconBtn:hover { opacity: 1; background: rgba(20,13,9,0.65); }
+.iconBtn svg { width: 1.2em; height: 1.2em; display: block; }
+/* iPhone 刘海/灵动岛适配：safe-area-inset-top 在普通浏览器为 0，全屏 PWA 下=状态栏高度 */
+#homeBtn, #themeIco, #langIco, #acctIco { top: calc(0.8em + env(safe-area-inset-top, 0px)); }
+#homeBtn { left: 0.8em; }
+#themeIco { right: 7.2em; }
+#langIco { right: 4em; }
+#acctIco { right: 0.8em; }
+#acctIco.in { border-color: var(--gold, #f5cd8a); }
+#acctIco.in::after { content: ''; position: absolute; top: 1px; right: 1px;
+  width: 0.55em; height: 0.55em; border-radius: 50%;
+  background: var(--gold, #f5cd8a); box-shadow: 0 0 5px rgba(245,205,138,0.8); }
+#acctPanel { display: none; position: fixed; top: calc(3.7em + env(safe-area-inset-top, 0px)); right: 0.8em; z-index: 47;
+  width: min(21em, calc(100vw - 1.6em)); box-sizing: border-box;
+  background: rgba(28,20,15,0.97); border: 1px solid var(--card-line);
+  border-radius: 14px; padding: 1em 1.1em;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.4); }
+#acctPanel.on { display: block; }
+#cloudBar { display: block; margin: calc(3.9em + env(safe-area-inset-top, 0px)) auto 0; max-width: min(30em, 88vw);
+  font-family: inherit; font-size: 0.76rem; line-height: 1.8; cursor: pointer;
+  color: var(--ink); opacity: 0.85; text-align: center;
+  background: rgba(245,205,138,0.08); border: 1px dashed rgba(245,205,138,0.55);
+  border-radius: 12px; padding: 0.55em 1em; }
+#cloudBar:hover { opacity: 1; }
+#langMenu { display: none; position: fixed; top: calc(3.7em + env(safe-area-inset-top, 0px)); right: 0.8em; z-index: 47;
+  background: rgba(28,20,15,0.97); border: 1px solid var(--card-line);
+  border-radius: 12px; padding: 0.5em; min-width: 9.5em;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.4); }
+#langMenu.on { display: block; }
+#langMenu .lang { display: block; width: 100%; background: none; border: none;
+  color: var(--ink); font-family: inherit; font-size: 0.88rem; text-align: left;
+  padding: 0.6em 0.9em; cursor: pointer; border-radius: 8px; letter-spacing: 0.05em; }
+#langMenu .lang:hover { background: rgba(247,236,217,0.1); }

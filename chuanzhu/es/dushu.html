@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<script>try{var _p=localStorage.getItem("chuanzhu_lang");if(_p&&_p!=="en"&&!location.search&&!location.hash&&!/[/](en|zh|es|pt)[/]/.test(location.pathname)){location.replace(_p+"/"+(location.pathname.split("/").pop()||"index.html"));}}catch(e){}</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#1c1722">
+<link rel="manifest" href="manifest-es.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Leer · BeadString</title>
+<script>try{var _t=localStorage.getItem("chuanzhu_theme");if(_t!=="night"){document.documentElement.dataset.theme="huiben";var _m=document.querySelector('meta[name="theme-color"]');if(_m)_m.content="#a8ddec";}}catch(e){}</script>
+<link rel="stylesheet" href="tokens.css">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { min-height: 100%; }
+  body {
+    font-family: Georgia, "Times New Roman", serif;
+    color: #fdf3e3; -webkit-font-smoothing: antialiased;
+    background: linear-gradient(180deg, #241d2b 0%, #3a2c33 45%, #5c4136 100%);
+    background-attachment: fixed;
+    overflow-x: hidden;
+  }
+  #grain { position: fixed; inset: 0; pointer-events: none; opacity: 0.05;
+           mix-blend-mode: overlay; z-index: 40; }
+  #vignette { position: fixed; inset: 0; pointer-events: none; z-index: 30;
+    background: radial-gradient(ellipse at 50% 40%, transparent 55%, rgba(15,8,5,0.5) 100%); }
+
+  main { position: relative; z-index: 10; max-width: 640px; margin: 0 auto;
+         padding: calc(3.4em + env(safe-area-inset-top, 0px)) 22px 16vh; }
+
+  /* 常驻两角：左=章节胶囊，右=串珠开关；其余操作收进顶部横幅 */
+  header { position: fixed; top: calc(0.55em + env(safe-area-inset-top, 0px));
+    left: 0.8em; right: 0.8em; z-index: 30; display: flex;
+    justify-content: space-between; align-items: center;
+    background: none; padding: 0; pointer-events: none; }
+  header > * { pointer-events: auto; }
+  #chTitle { text-align: left; cursor: pointer; padding: 0; }
+
+  /* 顶部横幅（微读式）：点正文空白弹出/收起，收纳 回家/字号/账户 */
+  #chrome { position: fixed; left: 0; right: 0; top: 0; z-index: 44;
+    display: flex; justify-content: center; align-items: center; gap: 0.7em;
+    padding: calc(0.7em + env(safe-area-inset-top, 0px)) 1em 0.7em;
+    background: rgba(24,18,29,0.94); backdrop-filter: blur(5px);
+    border-bottom: 1px solid rgba(245,205,138,0.22);
+    transform: translateY(-110%); transition: transform 0.32s ease; }
+  body.chrome #chrome { transform: none; }
+  #chrome .iconBtn { position: static; width: 2.3em; height: 2.3em; }
+
+  /* ---------- top bar ---------- */
+
+
+  #chTitle .tpill { display: inline-flex; align-items: center; gap: 0.55em;
+    font-size: 1.0rem; letter-spacing: 0.08em;
+    background: rgba(247,236,217,0.12); border: 1px solid rgba(245,205,138,0.6);
+    border-radius: 2em; padding: 0.42em 1.35em;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.18); transition: background 0.3s, border-color 0.3s; }
+  #chTitle:hover .tpill { background: rgba(247,236,217,0.2); border-color: rgba(245,205,138,0.9); }
+  #chTitle .arr { font-size: 0.68em; opacity: 0.85; }
+  .cbtn {
+    background: rgba(253,243,227,0.12); color: #fdf3e3;
+    border: 1px solid rgba(253,243,227,0.7);
+    border-radius: 2em; padding: 0.32em 1.05em; font-family: inherit; cursor: pointer;
+    font-size: 0.76rem; letter-spacing: 0.05em; transition: background 0.3s, border-color 0.3s;
+  }
+  .cbtn:hover { background: rgba(253,243,227,0.2); }
+  .cbtn.on { border-color: var(--gold-line); color: var(--gold);
+    background: rgba(240,201,135,0.16); }
+
+  /* ---------- text ---------- */
+  #text { margin-top: 1.4em; line-height: 2.0; letter-spacing: 0.01em;
+    user-select: text; -webkit-user-select: text; }
+  .verse { margin-bottom: 0.35em; }
+  .vn { font-size: 0.62em; opacity: 0.4; margin-right: 0.55em;
+    letter-spacing: 0; vertical-align: 0.35em; }
+  body.beadMode .verse.hasBead { cursor: pointer; border-radius: 6px;
+    transition: background 0.3s; }
+  body.beadMode .verse.hasBead:hover { background: rgba(245,205,138,0.07); }
+  body.beadMode .verse.hasBead .vn { color: #f5cd8a; opacity: 0.9; }
+  .bmark { display: none; margin-left: 0.45em; vertical-align: 0.18em;
+    font-size: 0.62em; letter-spacing: 0; color: #f5cd8a; cursor: pointer;
+    border: 1px solid rgba(245,205,138,0.4); border-radius: 2em;
+    padding: 0.12em 0.55em 0.12em 0.4em; white-space: nowrap;
+    background: rgba(245,205,138,0.08); }
+  .bmark::before { content: ''; display: inline-block; width: 0.6em; height: 0.6em;
+    border-radius: 50%; margin-right: 0.3em; vertical-align: -0.05em;
+    background: radial-gradient(circle at 32% 30%, #ffe9c4, #d9a05a 70%);
+    box-shadow: 0 0 4px rgba(245,205,138,0.5); }
+  body.beadMode .bmark { display: inline-block; }
+  #pkTitle .tpill { display: inline-flex; align-items: center; gap: 0.55em;
+    font-size: 1.0rem; letter-spacing: 0.15em; opacity: 1;
+    background: rgba(247,236,217,0.12); border: 1px solid rgba(245,205,138,0.6);
+    border-radius: 2em; padding: 0.42em 1.35em; }
+  #pkTitle { opacity: 1; }
+  #pkTitle .pkback { font-size: 0.72rem; opacity: 0.6; margin-left: 0.8em; }
+  .verse.flash { animation: vflash 2.4s ease; }
+  @keyframes vflash { 0%,55% { background: rgba(245,205,138,0.16); } 100% { background: none; } }
+
+  #pageNav { display: flex; justify-content: space-between; margin-top: 2.6em; }
+  .pbtn { background: rgba(253,243,227,0.12); color: #fdf3e3;
+    border: 1px solid rgba(253,243,227,0.75); border-radius: 2em;
+    padding: 0.55em 1.6em; font-family: inherit; cursor: pointer;
+    font-size: 0.82rem; letter-spacing: 0.06em; }
+  .pbtn:hover { background: rgba(253,243,227,0.2); }
+
+  #loadNote { text-align: center; margin-top: 30vh; font-size: 0.82rem;
+    letter-spacing: 0.1em; opacity: 0.6; line-height: 2.4; }
+  #loadNote a { color: #f5cd8a; }
+
+  .foot { text-align: center; margin-top: 3.5em; }
+  .foot a { display: inline-block; color: #f5cd8a; text-decoration: none;
+    font-size: 0.82rem; margin: 0.3em 0.35em; letter-spacing: 0.08em;
+    border: 1px solid rgba(245,205,138,0.7); border-radius: 2em;
+    padding: 0.55em 1.3em; background: rgba(245,205,138,0.1); }
+
+  /* ---------- book / chapter picker ---------- */
+  #picker { display: none; position: fixed; inset: 0; z-index: 50;
+    background: rgba(24,17,22,0.96); overflow-y: auto; padding: calc(4vh + env(safe-area-inset-top, 0px)) 22px 8vh; }
+  #picker.on { display: block; }
+  #picker h3 { text-align: center; font-weight: normal; font-size: 0.85rem;
+    letter-spacing: 0.25em; text-transform: uppercase; opacity: 0.6; margin-bottom: 1.4em; }
+  #pkBooks { display: grid; grid-template-columns: repeat(auto-fill, minmax(66px, 1fr));
+    gap: 8px; max-width: 640px; margin: 0 auto; }
+  #pkChs { display: grid; grid-template-columns: repeat(auto-fill, minmax(52px, 1fr));
+    gap: 8px; max-width: 640px; margin: 0 auto; }
+  .pk { text-align: center; padding: 0.65em 0.2em; cursor: pointer;
+    background: rgba(253,243,227,0.05); border: 1px solid rgba(253,243,227,0.16);
+    border-radius: 10px; font-size: 0.85rem; letter-spacing: 0.02em;
+    transition: border-color 0.3s; }
+  .pk:hover { border-color: rgba(245,205,138,0.6); }
+  .pk.cur { border-color: rgba(245,205,138,0.9); color: #f5cd8a; }
+  .pk .pkc { display: block; font-size: 0.55rem; opacity: 0.55; margin-top: 0.2em;
+    letter-spacing: 0; }
+  #pkClose { display: block; margin: 2.2em auto 0; }
+
+  /* ---------- bead sheet ---------- */
+  #sheetMask { display: none; position: fixed; inset: 0; z-index: 48;
+    background: rgba(10,6,4,0.45); }
+  #sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 49;
+    max-width: 640px; margin: 0 auto; max-height: 58vh; overflow-y: auto;
+    background: #2b2029; border-radius: 18px 18px 0 0;
+    border: 1px solid rgba(245,205,138,0.25); border-bottom: none;
+    padding: 1.2em 1.4em calc(2.2em + env(safe-area-inset-bottom, 0px));
+    transform: translateY(105%); transition: transform 0.35s ease; }
+  #sheet.on { transform: translateY(0); }
+  #sheetMask.on { display: block; }
+  #sheetTitle { text-align: center; font-size: 0.78rem; letter-spacing: 0.06em;
+    opacity: 0.6; margin-bottom: 0.9em; line-height: 2; }
+  .bead { display: block; text-decoration: none; color: #fdf3e3;
+    padding: 0.85em 1em; margin-bottom: 0.6em; border-radius: 10px;
+    background: rgba(253,243,227,0.05); border: 1px solid rgba(253,243,227,0.14);
+    transition: border-color 0.3s; }
+  .bead:hover { border-color: rgba(245,205,138,0.6); }
+  .bead .bref { font-size: 0.95rem; letter-spacing: 0.04em; color: #f5cd8a; }
+  .bead .bmeta { font-size: 0.68rem; letter-spacing: 0.04em; opacity: 0.5;
+    margin-top: 0.4em; line-height: 1.9; }
+  .bead .strung { color: #9fd6a4; opacity: 0.9; }
+</style>
+<link rel="stylesheet" href="theme-huiben.css">
+</head>
+<body>
+  <a id="homeBtn" class="iconBtn" href="index.html" aria-label="Home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 11.2 12 4l8.5 7.2"/><path d="M5.8 10v10h12.4V10"/></svg></a>
+  <canvas id="grain"></canvas>
+  <div id="vignette"></div>
+
+  <main>
+    <div id="chrome">
+      <button class="cbtn" id="fontMinus">A −</button>
+      <button class="cbtn" id="fontPlus">A ＋</button>
+    </div>
+    <header>
+      <div id="chTitle"><span class="tpill">… <span class="arr">▾</span></span></div>
+      <button class="cbtn" id="beadToggle">Cuentas · no</button>
+    </header>
+
+    <div id="loadNote">Trayendo los versículos…</div>
+    <div id="text"></div>
+
+    <div id="pageNav" style="display:none">
+      <button class="pbtn" id="prevBtn">‹ Anterior</button>
+      <button class="pbtn" id="nextBtn">Siguiente ›</button>
+    </div>
+
+    <p class="foot">
+      <a href="index.html">Ensartar una Cuenta</a>
+      <a href="gongfang.html">Mi Taller</a>
+    </p>
+  </main>
+
+  <!-- picker -->
+  <div id="picker">
+    <h3 id="pkTitle">Elige un Libro</h3>
+    <div id="pkBooks"></div>
+    <div id="pkChs" style="display:none"></div>
+    <button class="cbtn" id="pkClose">Cerrar</button>
+  </div>
+
+  <!-- bead sheet -->
+  <div id="sheetMask"></div>
+  <div id="sheet">
+    <div id="sheetTitle"></div>
+    <div id="sheetList"></div>
+  </div>
+
+<script src="../data/verses-es-1.js" async></script>
+<script src="../data/verses-es-2.js" async></script>
+<script src="../data/verses-es-3.js" async></script>
+<script src="../data/books-es.js" async></script>
+
+<script>
+// ================================================================ basics
+
+const BOOKS = [
+  ['Gen',50],['Exod',40],['Lev',27],['Num',36],['Deut',34],['Josh',24],['Judg',21],
+  ['Ruth',4],['1Sam',31],['2Sam',24],['1Kgs',22],['2Kgs',25],['1Chr',29],['2Chr',36],
+  ['Ezra',10],['Neh',13],['Esth',10],['Job',42],['Ps',150],['Prov',31],['Eccl',12],
+  ['Song',8],['Isa',66],['Jer',52],['Lam',5],['Ezek',48],['Dan',12],['Hos',14],
+  ['Joel',3],['Amos',9],['Obad',1],['Jonah',4],['Mic',7],['Nah',3],['Hab',3],
+  ['Zeph',3],['Hag',2],['Zech',14],['Mal',4],['Matt',28],['Mark',16],['Luke',24],
+  ['John',21],['Acts',28],['Rom',16],['1Cor',16],['2Cor',13],['Gal',6],['Eph',6],
+  ['Phil',4],['Col',4],['1Thess',5],['2Thess',3],['1Tim',6],['2Tim',4],['Titus',3],
+  ['Phlm',1],['Heb',13],['Jas',5],['1Pet',5],['2Pet',3],['1John',5],['2John',1],
+  ['3John',1],['Jude',1],['Rev',22],
+];
+const $ = (id) => document.getElementById(id);
+const SN = (b) => (window.BOOKSHORT || {})[b] || b;
+
+function versesReady() { return window.__VP && window.__VP === window.__VP_TOTAL; }
+// 优先级：经文先行（能读经就算能用），珠库随后注入；点开串珠开关也会立即触发
+function loadBeads() {
+  if (window.__BP || window.__beadsAsked) return;
+  window.__beadsAsked = true;
+  for (const src of ['../data/beads-en-1.js', '../data/beads-en-2.js']) {
+    const sc = document.createElement('script');
+    sc.src = src; sc.async = true;
+    document.head.appendChild(sc);
+  }
+}
+function beadsReady() {
+  if (window.BEADS) return true;
+  if (window.__BP && window.__BP_TOTAL && window.__BP.length === window.__BP_TOTAL) {
+    window.BEADS = window.__BP.join(';').split(';').map(s => {
+      const p = s.split('|');
+      return [p[0], p[1], +p[2], +p[3], p[4], p[5]];
+    });
+    return true;
+  }
+  return false;
+}
+function depthOf(votes) {
+  if (votes < 0)    return 'Discutida';
+  if (votes >= 100) return 'Someras';
+  if (votes >= 10)  return 'Cerca de la orilla';
+  if (votes >= 2)   return 'Aguas profundas';
+  return 'Lo profundo';
+}
+function splitKey(k) {
+  const m = k.match(/^([1-3]?[A-Za-z]+)(\d+)$/);
+  return [m[1], Number(m[2])];
+}
+function strungKeys() {
+  const set = new Set();
+  try {
+    for (const e of JSON.parse(localStorage.getItem('chuanzhu_strings')) || []) {
+      if (e.meta && e.meta.wall)
+        set.add(e.meta.wall.map(w => w[0] + w[1]).sort().join('|'));
+    }
+  } catch (e) {}
+  return set;
+}
+
+// ================================================================ reading state (persisted)
+
+let firstRead = false;
+try { firstRead = !localStorage.getItem('chuanzhu_reading'); } catch (e) {}
+const R = { bk: 'Jonah', ch: 4, font: 2, beads: false, sy: 0 };
+try { Object.assign(R, JSON.parse(localStorage.getItem('chuanzhu_reading')) || {}); } catch (e) {}
+const QS = new URLSearchParams(location.search);
+if (QS.get('bk') && QS.get('ch')) {
+  R.bk = QS.get('bk'); R.ch = Number(QS.get('ch')); R.sy = 0;
+}
+if (QS.get('beads')) R.beads = true;   // bookshelf entry: beads visible from the start
+if (R.beads) setTimeout(loadBeads, 0);
+if (!BOOKS.some(b => b[0] === R.bk)) { R.bk = 'Jonah'; R.ch = 4; }
+function saveR() { localStorage.setItem('chuanzhu_reading', JSON.stringify(R)); }
+
+const FONTS = ['0.92rem', '1.0rem', '1.08rem', '1.18rem', '1.3rem'];
+function applyFont() { $('text').style.fontSize = FONTS[R.font]; }
+function applyMode() {
+  document.body.classList.toggle('beadMode', R.beads);
+  $('beadToggle').textContent = R.beads ? 'Cuentas · sí' : 'Cuentas · no';
+  $('beadToggle').classList.toggle('on', R.beads);
+}
+
+// ================================================================ render
+
+let beadsAt = {};   // verse number -> [bead rows] for this chapter
+
+function chapterBeads() {
+  beadsAt = {};
+  if (!beadsReady()) return;
+  const K = R.bk + R.ch;
+  const first = (s) => parseInt(s);   // example refs may be ranges ("8-9") - anchor at the first verse
+  for (const r of window.BEADS) {
+    if (r[0] === K) { const v = first(r[4]); (beadsAt[v] = beadsAt[v] || []).push(r); }
+    else if (r[1] === K) { const v = first(r[5]); (beadsAt[v] = beadsAt[v] || []).push(r); }
+  }
+  for (const v in beadsAt) beadsAt[v].sort((a, b) => b[2] - a[2]);
+}
+
+function render() {
+  // do not render before the verses arrive (a chapter may be picked early)
+  if (!(versesReady() && window.BOOKFULL)) {
+    $('loadNote').style.display = 'block';
+    return;
+  }
+  const full = window.BOOKFULL || {};
+  $('chTitle').innerHTML =
+    `<span class="tpill">${full[R.bk] || R.bk} ${R.ch} <span class="arr">▾</span></span>`;
+  chapterBeads();
+  const box = $('text');
+  box.innerHTML = '';
+  let v = 1;
+  while (true) {
+    const t = window.VERSES[`${R.bk}${R.ch}:${v}`];
+    if (t === undefined) break;
+    const div = document.createElement('div');
+    div.className = 'verse';
+    div.dataset.v = v;
+    const list = beadsAt[v];
+    if (list) div.classList.add('hasBead');
+    div.innerHTML = `<span class="vn">${v}</span>${t}` +
+      (list ? `<span class="bmark">${list.length}</span>` : '');
+    box.appendChild(div);
+    v++;
+  }
+  $('pageNav').style.display = 'flex';
+  $('loadNote').style.display = 'none';
+  saveR();
+  const tv = Number(QS.get('v') || 0);
+  if (tv) {
+    const el = box.querySelector(`.verse[data-v="${tv}"]`);
+    if (el) { el.scrollIntoView({ block: 'center' }); el.classList.add('flash'); }
+    QS.delete('v');
+  } else window.scrollTo(0, R.sy || 0);
+}
+
+function goto(bk, ch) {
+  R.bk = bk; R.ch = ch; R.sy = 0;
+  QS.delete('v');
+  saveR(); render();
+  window.scrollTo(0, 0);
+}
+
+function step(dir) {
+  let bi = BOOKS.findIndex(b => b[0] === R.bk);
+  let ch = R.ch + dir;
+  if (ch < 1) { bi = (bi - 1 + BOOKS.length) % BOOKS.length; ch = BOOKS[bi][1]; }
+  else if (ch > BOOKS[bi][1]) { bi = (bi + 1) % BOOKS.length; ch = 1; }
+  goto(BOOKS[bi][0], ch);
+}
+$('prevBtn').addEventListener('click', () => step(-1));
+
+// 左右滑动翻章（水平位移主导且未在选字时生效）
+{
+  let tx = 0, ty = 0;
+  document.addEventListener('touchstart', (e) => {
+    if (e.touches.length !== 1) return;
+    tx = e.touches[0].clientX; ty = e.touches[0].clientY;
+  }, { passive: true });
+  document.addEventListener('touchend', (e) => {
+    if ($('picker').classList.contains('on') || $('sheet').classList.contains('on')) return;
+    const sel = window.getSelection && window.getSelection().toString();
+    if (sel) return;
+    const dx = e.changedTouches[0].clientX - tx;
+    const dy = e.changedTouches[0].clientY - ty;
+    if (Math.abs(dx) > 70 && Math.abs(dx) > Math.abs(dy) * 1.6) step(dx < 0 ? 1 : -1);
+  }, { passive: true });
+}
+
+$('nextBtn').addEventListener('click', () => step(1));
+
+// ================================================================ picker
+
+function openPicker() {
+  const full = window.BOOKFULL || {};
+  $('pkTitle').innerHTML = '<span class="tpill">Elige un Libro</span>';
+  $('pkChs').style.display = 'none';
+  const g = $('pkBooks');
+  g.style.display = 'grid';
+  g.innerHTML = BOOKS.map(([b]) =>
+    `<div class="pk${b === R.bk ? ' cur' : ''}" data-b="${b}" title="${full[b] || b}">${SN(b)}</div>`).join('');
+  $('picker').classList.add('on');
+}
+let pkBook = null;
+function showChapters(b) {
+  pkBook = b;
+  const n = BOOKS.find(x => x[0] === b)[1];
+  const full = window.BOOKFULL || {};
+  $('pkTitle').innerHTML = '<span class="tpill">' + (full[b] || b) +
+    ' <span class="arr">▾</span></span>';
+  $('pkBooks').style.display = 'none';
+  const cnt = {};
+  if (beadsReady()) {
+    for (const r of window.BEADS) {
+      let [bk] = splitKey(r[0]);
+      if (bk === b) cnt[r[0]] = (cnt[r[0]] || 0) + 1;
+      [bk] = splitKey(r[1]);
+      if (bk === b && r[0] !== r[1]) cnt[r[1]] = (cnt[r[1]] || 0) + 1;
+    }
+  }
+  const g = $('pkChs');
+  g.style.display = 'grid';
+  g.innerHTML = Array.from({ length: n }, (_, i) => {
+    const c = i + 1;
+    const k = cnt[b + c];
+    return `<div class="pk${b === R.bk && c === R.ch ? ' cur' : ''}" data-b="${b}" data-c="${c}">${c}` +
+      (k ? `<span class="pkc">${k}</span>` : '') + `</div>`;
+  }).join('');
+}
+$('chTitle').addEventListener('click', openPicker);
+// 回家/账户图标收进顶部横幅（transform 祖先接管 fixed 定位，静态排布即可）
+$('chrome').insertBefore($('homeBtn'), $('chrome').firstChild);
+{
+  const tAcct = setInterval(() => {
+    const a = document.getElementById('acctIco');
+    if (a) { clearInterval(tAcct); $('chrome').appendChild(a); }
+  }, 200);
+  setTimeout(() => clearInterval(tAcct), 6000);
+}
+$('pkBooks').addEventListener('click', (e) => {
+  const el = e.target.closest('.pk');
+  if (el) showChapters(el.dataset.b);
+});
+$('pkChs').addEventListener('click', (e) => {
+  const el = e.target.closest('.pk');
+  if (!el) return;
+  $('picker').classList.remove('on');
+  goto(el.dataset.b, Number(el.dataset.c));
+});
+$('pkClose').addEventListener('click', () => $('picker').classList.remove('on'));
+$('pkTitle').addEventListener('click', () => {
+  if ($('pkChs').style.display !== 'none') openPicker();
+});
+
+// ================================================================ bead mode
+
+$('fontMinus').addEventListener('click', () => {
+  R.font = Math.max(0, R.font - 1); applyFont(); saveR(); });
+$('fontPlus').addEventListener('click', () => {
+  R.font = Math.min(FONTS.length - 1, R.font + 1); applyFont(); saveR(); });
+$('beadToggle').addEventListener('click', () => {
+  loadBeads();
+  R.beads = !R.beads; applyMode(); saveR();
+  if (R.beads && !beadsReady()) {
+    $('beadToggle').textContent = 'Cargando cuentas…';
+    const t = setInterval(() => {
+      if (beadsReady()) { clearInterval(t); applyMode(); render(); }
+    }, 300);
+  }
+});
+
+$('text').addEventListener('click', (e) => {
+  // 串珠列表只在点中珠子徽章时打开（正文点击留给沉浸切换）
+  if (!R.beads) return;
+  const mark = e.target.closest('.bmark');
+  if (!mark) return;
+  const verse = mark.closest('.verse');
+  if (verse) openSheet(Number(verse.dataset.v));
+});
+// 点屏幕空白处收放边角操作（选中文字/点按钮链接时不触发）
+document.addEventListener('click', (e) => {
+  try { if (String(window.getSelection())) return; } catch (err) {}
+  if (e.target.closest('button, a, .bmark, #picker, #sheet, #sheetMask, header, .iconBtn, #acctPanel')) return;
+  document.body.classList.toggle('chrome');
+});
+function openSheet(v) {
+  const list = beadsAt[v] || [];
+  const full = window.BOOKFULL || {};
+  const strung = strungKeys();
+  const K = R.bk + R.ch;
+  $('sheetTitle').innerHTML =
+    `${full[R.bk] || R.bk} ${R.ch}:${v} · ${list.length} cuenta${list.length > 1 ? 's' : ''}<br>` +
+    `<span style="opacity:0.6">hilos trazados desde aquí por dos siglos de ensartadores</span>`;
+  $('sheetList').innerHTML = list.map(r => {
+    const mine = r[0] === K;
+    const myV = mine ? r[4] : r[5];
+    const oCh = mine ? r[1] : r[0], oV = mine ? r[5] : r[4];
+    const [ob, oc] = splitKey(oCh);
+    const done = strung.has([r[0], r[1]].sort().join('|'));
+    const url = 'index.html?a=' + encodeURIComponent(K + ':' + myV) +
+      '&b=' + encodeURIComponent(oCh + ':' + oV) +
+      '&v=' + r[2] + '&n=' + r[3] + '&back=du';
+    return `<a class="bead" href="${url}">
+      <div class="bref">${full[ob] || ob} ${oc}:${oV}</div>
+      <div class="bmeta">${depthOf(r[2])} · ${r[2]} votos · ${r[3]} registros por versículo` +
+      (done ? ' · <span class="strung">ensartada · revisitar</span>' : '') + `</div>
+    </a>`;
+  }).join('');
+  $('sheet').classList.add('on');
+  $('sheetMask').classList.add('on');
+}
+function closeSheet() {
+  $('sheet').classList.remove('on');
+  $('sheetMask').classList.remove('on');
+}
+$('sheetMask').addEventListener('click', closeSheet);
+
+// ================================================================ scroll memory
+
+let syT = null;
+window.addEventListener('scroll', () => {
+  if (syT) return;
+  syT = setTimeout(() => { syT = null; R.sy = window.scrollY; saveR(); }, 400);
+});
+
+// ================================================================ boot
+
+applyFont(); applyMode();
+// reading entry: the picker opens at once (the book table is static); verses load behind it
+if (QS.get('pick') || (firstRead && !QS.get('bk'))) { openPicker(); showChapters(R.bk); }
+{
+  const tb = setInterval(() => {
+    if (!beadsReady()) return;
+    clearInterval(tb);
+    if ($('picker').classList.contains('on') && pkBook &&
+        $('pkChs').style.display !== 'none') showChapters(pkBook);
+  }, 300);
+}
+{
+  const t0 = Date.now();
+  const t = setInterval(() => {
+    if (versesReady() && window.BOOKFULL) {
+      clearInterval(t); loadBeads(); render();
+      if (R.beads) {
+        const t2 = setInterval(() => {
+          if (beadsReady()) { clearInterval(t2); chapterBeads(); render(); }
+        }, 300);
+      }
+    } else {
+      $('loadNote').innerHTML =
+        'Trayendo los versículos… ' + (window.__VP || 0) + '/' + (window.__VP_TOTAL || 3) +
+        (Date.now() - t0 > 30000
+          ? '<br><a href="javascript:location.reload()">¿Red lenta? Toca para reintentar</a>' : '');
+    }
+  }, 250);
+}
+
+// grain
+{
+  const g = $('grain'), gs = 140;
+  g.width = gs; g.height = gs;
+  g.style.width = '100vw'; g.style.height = '100vh';
+  g.style.imageRendering = 'pixelated';
+  const ctx = g.getContext('2d');
+  const re = () => {
+    const img = ctx.createImageData(gs, gs);
+    for (let i = 0; i < img.data.length; i += 4) {
+      const v = Math.random() * 255;
+      img.data[i] = img.data[i+1] = img.data[i+2] = v; img.data[i+3] = 255;
+    }
+    ctx.putImageData(img, 0, 0);
+  };
+  re(); setInterval(re, 150);
+}
+</script>
+<script src="account.js" defer></script>
+<script>if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(function () {});</script>
+</body>
+</html>

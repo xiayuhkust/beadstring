@@ -1,0 +1,16 @@
+# 凭据（绝不入库）/ credentials — never commit
+cloudflare.txt
+supbase.txt
+resend.txt
+
+# 构建产物 / build outputs
+dist/
+dist-cf/
+dist-tcb/
+
+# 杂项 / misc
+node_modules/
+*.log
+Thumbs.db
+.DS_Store
+.wrangler/

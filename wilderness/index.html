@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>旷野 · Wilderness</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; overflow: hidden; background: #1a1620; }
+  body {
+    font-family: Georgia, "Times New Roman", "Songti SC", "宋体", serif;
+    color: #fdf3e3;
+    -webkit-font-smoothing: antialiased;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  #scene { position: fixed; inset: 0; display: block; }
+
+  /* 暗角 */
+  #vignette {
+    position: fixed; inset: 0; pointer-events: none;
+    background: radial-gradient(ellipse at 50% 45%, transparent 55%, rgba(20,12,8,0.45) 100%);
+  }
+  /* 胶片颗粒（JS 生成噪点贴图） */
+  #grain {
+    position: fixed; inset: 0; pointer-events: none;
+    opacity: 0.07; mix-blend-mode: overlay;
+  }
+
+  #ui { position: fixed; inset: 0; display: flex; flex-direction: column;
+        align-items: center; justify-content: center; pointer-events: none; }
+
+  /* ---------- 开场 ---------- */
+  #intro { text-align: center; transition: opacity 1.6s ease; pointer-events: auto; }
+  #intro.hidden { opacity: 0; pointer-events: none; }
+  #intro h1 {
+    font-size: clamp(2.6rem, 8vw, 4.4rem); font-weight: normal;
+    letter-spacing: 0.5em; margin-left: 0.5em; /* 抵消字距造成的偏移 */
+    text-shadow: 0 2px 30px rgba(60,30,10,0.6);
+  }
+  #intro p.sub {
+    margin-top: 1.2em; font-size: clamp(0.85rem, 2.5vw, 1rem);
+    letter-spacing: 0.3em; margin-left: 0.3em; opacity: 0.75;
+  }
+  #enter {
+    margin-top: 3.2em; pointer-events: auto; cursor: pointer;
+    background: none; color: #fdf3e3;
+    border: 1px solid rgba(253,243,227,0.5); border-radius: 2em;
+    padding: 0.8em 2.6em; font-family: inherit;
+    font-size: clamp(0.9rem, 2.5vw, 1.05rem); letter-spacing: 0.35em; text-indent: 0.35em;
+    transition: background 0.4s, border-color 0.4s;
+  }
+  #enter:hover { background: rgba(253,243,227,0.12); border-color: rgba(253,243,227,0.9); }
+  #intro p.hint { margin-top: 1.6em; font-size: 0.75rem; letter-spacing: 0.2em; opacity: 0.45; }
+
+  /* ---------- 呼吸引导 ---------- */
+  #breath { display: none; flex-direction: column; align-items: center; }
+  #breathCircle {
+    width: 110px; height: 110px; border-radius: 50%;
+    border: 1.5px solid rgba(253,243,227,0.85);
+    box-shadow: 0 0 40px rgba(253,220,170,0.25), inset 0 0 26px rgba(253,220,170,0.18);
+  }
+  #breathText { margin-top: 2.4em; font-size: 1.05rem; letter-spacing: 0.45em; text-indent: 0.45em; opacity: 0.9; }
+
+  /* ---------- 经文 / 文本 ---------- */
+  #text {
+    position: fixed; left: 50%; bottom: 16vh; transform: translateX(-50%);
+    width: min(86vw, 620px); text-align: center; pointer-events: none;
+  }
+  #text .line {
+    opacity: 0; transform: translateY(10px);
+    transition: opacity 2.4s ease, transform 2.4s ease;
+    font-size: clamp(1.15rem, 3.6vw, 1.55rem); line-height: 2.2;
+    letter-spacing: 0.18em; text-shadow: 0 2px 24px rgba(40,20,5,0.8);
+  }
+  #text .line.show { opacity: 1; transform: translateY(0); }
+  #text .line.small { font-size: clamp(0.85rem, 2.6vw, 1rem); opacity: 0; letter-spacing: 0.25em; }
+  #text .line.small.show { opacity: 0.65; }
+  #text .line.capsule { font-size: clamp(0.95rem, 3vw, 1.15rem); line-height: 2.3; }
+  #text.fadeout .line { opacity: 0 !important; transition: opacity 1.8s ease; }
+
+  /* ---------- 结束卡片 ---------- */
+  #closing { display: none; flex-direction: column; align-items: center; text-align: center; }
+  #tile {
+    width: 46px; height: 46px; border-radius: 7px;
+    border: 1px solid rgba(253,243,227,0.35);
+    background: rgba(253,243,227,0.06);
+    transition: background 2.5s ease, box-shadow 2.5s ease, border-color 2.5s ease;
+  }
+  #tile.lit {
+    background: linear-gradient(135deg, #f5cd8a, #e8a75c);
+    border-color: #ffe9c4;
+    box-shadow: 0 0 34px rgba(245,200,130,0.75);
+  }
+  #closing .big { margin-top: 2em; font-size: 1.2rem; letter-spacing: 0.3em; text-indent: 0.3em; }
+  #closing .dim { margin-top: 1.4em; font-size: 0.85rem; letter-spacing: 0.2em; opacity: 0.55; line-height: 2; }
+  #stay {
+    margin-top: 2.6em; pointer-events: auto; cursor: pointer;
+    background: none; color: #fdf3e3; border: 1px solid rgba(253,243,227,0.4);
+    border-radius: 2em; padding: 0.6em 2em; font-family: inherit;
+    font-size: 0.9rem; letter-spacing: 0.3em; text-indent: 0.3em;
+    transition: background 0.4s;
+  }
+  #stay:hover { background: rgba(253,243,227,0.1); }
+
+  /* ---------- 杂项 ---------- */
+  #skipHint {
+    position: fixed; bottom: 4.5vh; left: 50%; transform: translateX(-50%);
+    font-size: 0.72rem; letter-spacing: 0.3em; opacity: 0;
+    transition: opacity 1.5s; pointer-events: none;
+  }
+  #skipHint.show { opacity: 0.35; }
+  #mute {
+    position: fixed; top: 20px; right: 22px; z-index: 10;
+    background: none; border: none; color: #fdf3e3; opacity: 0.55;
+    font-size: 1.15rem; cursor: pointer; display: none;
+  }
+  #fadeBlack {
+    position: fixed; inset: 0; background: #14100e; pointer-events: none;
+    opacity: 1; transition: opacity 3.5s ease;
+  }
+</style>
+</head>
+<body>
+  <canvas id="scene"></canvas>
+  <div id="vignette"></div>
+  <canvas id="grain"></canvas>
+
+  <div id="ui">
+    <div id="intro">
+      <h1>旷 野</h1>
+      <p class="sub">一 次 五 分 钟 的 沙 漠 灵 修</p>
+      <button id="enter">进 入 旷 野</button>
+      <p class="hint">建议戴上耳机 · 找一个不被打扰的角落</p>
+    </div>
+
+    <div id="breath">
+      <div id="breathCircle"></div>
+      <div id="breathText">&nbsp;</div>
+    </div>
+
+    <div id="closing">
+      <div id="tile"></div>
+      <div class="big">今日的旷野，已点亮</div>
+      <div class="dim">「我要领她到旷野，对她说安慰的话。」<br>明天，旷野会换一个地方。</div>
+      <button id="stay">再 停 留 一 会 儿</button>
+    </div>
+  </div>
+
+  <div id="text"></div>
+  <div id="skipHint">轻 触 屏 幕 · 继 续</div>
+  <button id="mute" title="声音">◉</button>
+  <div id="fadeBlack"></div>
+
+  <script src="lib/three.min.js"></script>
+  <script src="main.js"></script>
+</body>
+</html>

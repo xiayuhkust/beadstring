@@ -1,0 +1,1436 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#1c1722">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>串珠 · 旷野的手工</title>
+<script>try{var _t=localStorage.getItem("chuanzhu_theme");if(_t!=="night"){document.documentElement.dataset.theme="huiben";var _m=document.querySelector('meta[name="theme-color"]');if(_m)_m.content="#a8ddec";}}catch(e){}</script>
+<link rel="stylesheet" href="tokens.css">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { min-height: 100%; }
+  body {
+    font-family: Georgia, "Times New Roman", "Songti SC", "宋体", serif;
+    color: #fdf3e3; -webkit-font-smoothing: antialiased;
+    user-select: none; -webkit-user-select: none;
+    background: linear-gradient(180deg, #241d2b 0%, #3a2c33 40%, #7a5240 72%, #c98d5e 100%);
+    background-attachment: fixed;
+    overflow-x: hidden;
+  }
+  /* 沙丘剪影 */
+  .dune { position: fixed; left: -10vw; width: 120vw; border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+          pointer-events: none; z-index: 0; }
+  .dune.d1 { bottom: -12vh; height: 26vh; background: #2a2019; opacity: 0.9; }
+  .dune.d2 { bottom: -16vh; height: 22vh; left: 20vw; width: 110vw; background: #201812; }
+  #grain { position: fixed; inset: 0; pointer-events: none; opacity: 0.06;
+           mix-blend-mode: overlay; z-index: 40; }
+  #vignette { position: fixed; inset: 0; pointer-events: none; z-index: 30;
+    background: radial-gradient(ellipse at 50% 40%, transparent 52%, rgba(15,8,5,0.55) 100%); }
+
+  main { position: relative; z-index: 10; max-width: 640px; margin: 0 auto;
+         padding: 0 22px 10vh; }
+
+  .stage { display: none; animation: fadein 1.6s ease; }
+  .stage.on { display: block; }
+  @keyframes fadein { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; } }
+
+  /* ---------- 通用 ---------- */
+  h1 { font-size: clamp(2.2rem, 7vw, 3.4rem); font-weight: normal;
+       letter-spacing: 0.5em; margin-left: 0.5em; text-align: center;
+       text-shadow: 0 2px 30px rgba(60,30,10,0.7); }
+  .sub { text-align: center; margin-top: 1.1em; font-size: 0.88rem;
+         letter-spacing: 0.3em; opacity: 0.7; }
+  .btnrow { text-align: center; margin-top: 2.6em; }
+  button, .abtn {
+    background: var(--surface); color: var(--ink);
+    border: 1px solid var(--line);
+    border-radius: 2em; padding: 0.7em 2em; font-family: inherit; cursor: pointer;
+    font-size: 0.92rem; letter-spacing: 0.28em; text-indent: 0.28em;
+    transition: background 0.4s, border-color 0.4s; text-decoration: none;
+    display: inline-block; margin: 0.35em 0.4em;
+  }
+  button:hover, .abtn:hover { background: var(--surface-hover); }
+  /* 主行动：实心金——每屏只有一件（金=线与珠，稀缺才神圣） */
+  button.gold {
+    background: linear-gradient(180deg, #f3d090, #d9a05a);
+    color: #2b1c0e; border: 1px solid rgba(255,232,190,0.55);
+    box-shadow: 0 2px 16px rgba(217,160,90,0.35);
+  }
+  button.gold:hover { background: linear-gradient(180deg, #f7d89e, #e0aa64); }
+  /* 次行动：金描边 */
+  button.goldline { border-color: var(--gold-line); color: var(--gold);
+    background: rgba(240,201,135,0.12); }
+  button.goldline:hover { background: rgba(240,201,135,0.2); }
+  button.ghost { border-color: var(--line-soft); font-size: 0.82rem;
+    background: rgba(247,236,217,0.07); }
+  .hint { text-align: center; font-size: 0.74rem; letter-spacing: 0.2em;
+          opacity: 0.62; margin-top: 1.6em; line-height: 2.2; }
+
+  /* ---------- 开场 ---------- */
+  #sIntro { padding-top: 16vh; }
+  #sIntro .monk { text-align: center; margin-top: 3em; font-size: 0.85rem;
+    letter-spacing: 0.18em; line-height: 2.6; opacity: 0.6; }
+
+  /* ---------- 呼吸 ---------- */
+  #sBreath { padding-top: 20vh; text-align: center; }
+  #breathWhy { margin-bottom: 2.4em; font-size: 0.88rem; letter-spacing: 0.2em;
+    opacity: 0.7; line-height: 2.2; min-height: 1.6em; }
+
+  /* ---------- 珠已备好（状态中的过场动画） ---------- */
+  #sArrive { text-align: center; padding-top: 27vh; }
+  #arriveBox svg { width: min(70vw, 320px); overflow: visible;
+    animation: arrSway 2.4s ease-in-out 1.7s infinite;
+    transform-origin: 50% 0%; }
+  @keyframes arrSway { 0%,100% { transform: rotate(0.9deg); } 50% { transform: rotate(-0.9deg); } }
+  .arrThread { stroke-dasharray: 430; stroke-dashoffset: 430;
+    animation: arrDraw 1.25s ease 0.15s forwards;
+    filter: drop-shadow(0 0 5px rgba(245,205,138,0.45)); }
+  @keyframes arrDraw { to { stroke-dashoffset: 0; } }
+  .arrBead { transform-box: fill-box; transform-origin: center; transform: scale(0);
+    animation: arrPop 0.65s cubic-bezier(.34,1.56,.64,1) forwards; }
+  .arrBead.b1 { animation-delay: 1.0s; }
+  .arrBead.b2 { animation-delay: 1.25s; }
+  .arrKnot { transform-box: fill-box; transform-origin: center; transform: scale(0);
+    animation: arrPop 0.5s ease 1.65s forwards; }
+  @keyframes arrPop { to { transform: scale(1); } }
+  .arrCap { margin-top: 2.2em; font-size: 0.8rem; letter-spacing: 0.55em;
+    text-indent: 0.55em; opacity: 0; animation: arrCapIn 1.1s ease 2.1s forwards; }
+  @keyframes arrCapIn { to { opacity: 0.55; } }
+  #bc { width: 100px; height: 100px; border-radius: 50%; margin: 0 auto;
+    border: 1.5px solid rgba(253,243,227,0.85);
+    box-shadow: 0 0 40px rgba(253,220,170,0.25), inset 0 0 26px rgba(253,220,170,0.18); }
+  #bt { margin-top: 2.2em; font-size: 1rem; letter-spacing: 0.4em; opacity: 0.9; }
+
+  /* ---------- 珠子（经文卡） ---------- */
+  .beadCard {
+    position: relative; margin-top: 2em; padding: 1.6em 1.7em 1.5em;
+    background: var(--card); backdrop-filter: blur(3px);
+    border: 1px solid var(--card-line); border-radius: 14px;
+  }
+  .beadRef { font-size: 0.75rem; letter-spacing: 0.3em; opacity: 0.55; margin-bottom: 1em; }
+  .beadRef i { font-style: normal; color: #f5cd8a; }
+  .verses { font-size: clamp(1.02rem, 3vw, 1.15rem); line-height: 2.35; letter-spacing: 0.1em; }
+  .verses .vline { opacity: 0; transition: opacity 2s ease; display: block; margin-bottom: 0.2em; }
+  .verses .vline.show { opacity: 1; }
+
+  #sBeadA .stageTitle, #sBeadB .stageTitle, #sFind .stageTitle, #sKnot .stageTitle {
+    text-align: center; margin-top: 8vh; font-size: 1.05rem; letter-spacing: 0.4em; opacity: 0.85; }
+
+  /* ---------- 找线 ---------- */
+  #findWrap { position: relative; }
+  #threadSvg { position: absolute; inset: 0; pointer-events: none; z-index: 5; overflow: visible; }
+  .thread { fill: none; stroke: rgba(245,205,138,0.75); stroke-width: 1.4;
+    stroke-dasharray: 500; stroke-dashoffset: 500; animation: tdraw 1.6s ease forwards;
+    filter: drop-shadow(0 0 4px rgba(245,205,138,0.5)); }
+  @keyframes tdraw { to { stroke-dashoffset: 0; } }
+
+  .seg { cursor: pointer; border-bottom: 1px dashed transparent;
+         transition: background 0.3s, color 0.3s; border-radius: 3px; padding: 1px 1px; }
+  .seg:hover { border-bottom-color: rgba(253,243,227,0.4); }
+  .seg.sel { background: rgba(253,220,160,0.22); }
+  .seg.match { background: rgba(245,205,138,0.28); color: #ffe9c4;
+               text-shadow: 0 0 12px rgba(245,205,138,0.6); }
+  .seg.reveal { outline: 1px dashed rgba(245,205,138,0.5); }
+
+  /* ---------- TSK 节级线索列表 ---------- */
+  #tskList { max-width: 640px; margin: 1.4em auto 0; }
+  .tline { display: flex; justify-content: space-between; gap: 1em; width: 100%;
+    box-sizing: border-box; background: var(--card); border: 1px solid var(--card-line);
+    color: inherit; font-family: inherit; border-radius: 10px; padding: 0.5em 1em;
+    margin: 0.45em 0 0; cursor: pointer; font-size: 0.8rem; letter-spacing: 0.05em; }
+  .tline:hover { border-color: var(--gold-line); background: var(--card); }
+  #knotNotes { max-width: 30em; margin: 0.4em auto 0; text-align: center; }
+  .noteLink { background: none; border: none; cursor: pointer; font-family: inherit;
+    color: #f5cd8a; opacity: 0.8; font-size: 0.78rem; letter-spacing: 0.05em;
+    text-decoration: underline dashed rgba(245,205,138,0.5); padding: 0.2em 0; margin: 0; }
+  .noteLink:hover { opacity: 1; background: none; }
+  .dnote { background: var(--card); border: 1px solid var(--card-line);
+    border-radius: 10px; padding: 0.7em 1em; margin-top: 0.5em; font-size: 0.82rem;
+    line-height: 2; text-align: left; }
+  .dnote span { display: block; font-size: 0.72rem; opacity: 0.55; margin-top: 0.2em; }
+  .amen { background: none; border: 1px solid rgba(245,205,138,0.35); border-radius: 2em;
+    color: inherit; font-family: inherit; font-size: 0.72rem; cursor: pointer;
+    padding: 0.1em 0.7em; margin: 0 0 0 0.5em; opacity: 0.8; display: inline-block; }
+  .amen b { font-weight: normal; }
+  .amen.on { border-color: rgba(245,205,138,0.9); color: #f5cd8a; background: rgba(245,205,138,0.12); }
+  .amen[disabled] { cursor: default; opacity: 0.5; }
+  @keyframes segshake { 0%,100%{transform:translateX(0)} 30%{transform:translateX(-3px)} 70%{transform:translateX(3px)} }
+  .seg.shake { display: inline-block; animation: segshake 0.35s; }
+
+  #findFb { text-align: center; margin-top: 1.6em; min-height: 2.2em;
+    font-size: 0.85rem; letter-spacing: 0.15em; opacity: 0.85; line-height: 2; }
+  #findFb b { color: #f5cd8a; font-weight: normal; }
+
+  /* ---------- 打结 ---------- */
+  #reason {
+    width: 100%; margin-top: 1.6em; min-height: 5.5em; resize: vertical;
+    background: rgba(20,13,9,0.55); color: #fdf3e3;
+    border: 1px solid rgba(253,243,227,0.25); border-radius: 12px;
+    padding: 1em 1.2em; font-family: inherit; font-size: 0.95rem;
+    letter-spacing: 0.08em; line-height: 2;
+  }
+  #reason:focus { outline: none; border-color: rgba(245,205,138,0.5); }
+  #knotAnchors { text-align: center; margin-top: 1.4em; font-size: 0.8rem;
+    letter-spacing: 0.15em; opacity: 0.7; line-height: 2.4; }
+  #knotAnchors i { font-style: normal; color: #f5cd8a;
+    border: 1px solid rgba(245,205,138,0.35); border-radius: 1.2em;
+    padding: 0.15em 0.8em; margin: 0 0.3em; }
+  .charCount { text-align: right; font-size: 0.7rem; opacity: 0.4; margin-top: 0.4em; }
+
+  /* ---------- 串成 ---------- */
+  #sDone { text-align: center; padding-top: 10vh; }
+  #beadString { margin: 2.5em auto 0; width: min(78vw, 340px); }
+  #doneRefs { margin-top: 1.8em; font-size: 0.88rem; letter-spacing: 0.2em; opacity: 0.8; line-height: 2.4; }
+  #doneReason { margin-top: 1.2em; font-size: 0.85rem; letter-spacing: 0.1em;
+    opacity: 0.6; line-height: 2.2; font-style: italic; }
+  #doneSrc { margin-top: 1.6em; font-size: 0.68rem; letter-spacing: 0.2em; opacity: 0.35; }
+
+  /* ---------- 笔记 ---------- */
+  #sNotes { padding-top: 10vh; }
+  .note { margin-top: 1.4em; padding: 1.2em 1.4em; border: 1px solid rgba(253,243,227,0.14);
+    border-radius: 12px; background: rgba(20,13,9,0.5); }
+  .note .nrefs { font-size: 0.8rem; letter-spacing: 0.2em; color: #f5cd8a; opacity: 0.85; }
+  .note .ndate { font-size: 0.68rem; opacity: 0.4; margin-top: 0.4em; letter-spacing: 0.15em; }
+  .note .nreason { margin-top: 0.7em; font-size: 0.85rem; line-height: 2; opacity: 0.75; }
+</style>
+<link rel="stylesheet" href="theme-huiben.css">
+</head>
+<body>
+  <button id="themeIco" class="iconBtn" aria-label="切换皮肤"></button>
+  <button id="langIco" class="iconBtn" aria-label="Language"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="8.6"/><path d="M3.4 12h17.2M12 3.4a13.6 13.6 0 0 1 0 17.2M12 3.4a13.6 13.6 0 0 0 0 17.2"/></svg></button>
+  <div id="langMenu">
+    <button class="lang" data-l="en">English</button>
+    <button class="lang" data-l="es">Español</button>
+    <button class="lang" data-l="pt">Português</button>
+  </div>
+  <div class="dune d2"></div>
+  <div class="dune d1"></div>
+  <canvas id="grain"></canvas>
+  <div id="vignette"></div>
+
+  <main>
+    <!-- 开场 -->
+    <section id="sIntro" class="stage on">
+      <h1>串 珠</h1>
+      <p class="sub">旷 野 的 手 工</p>
+      <div style="text-align:center; margin-top:1.5em" aria-hidden="true">
+        <svg width="150" height="26" viewBox="0 0 150 26">
+          <path d="M 8 8 Q 75 25 142 8" fill="none"
+            stroke="rgba(240,201,135,0.6)" stroke-width="1.2"/>
+          <circle cx="8" cy="8" r="3.2" fill="#f0c987"/>
+          <circle cx="142" cy="8" r="3.2" fill="#e8a75c"/>
+        </svg>
+      </div>
+      <p class="monk">沙漠里的修士，一边祷告，一边编织。<br>
+        今天也一样——安静下来，串一串。</p>
+      <p id="todayMark" style="display:none; text-align:center; margin:1.4em 0 -0.6em;
+        font-size:0.78rem; letter-spacing:0.3em; text-indent:0.3em; color:#f5cd8a;
+        opacity:0.9;"></p>
+      <div class="btnrow">
+        <button id="readBtn" class="gold">读 经</button>
+      </div>
+      <div class="btnrow" style="margin-top:0.2em">
+        <button id="startBtn" class="goldline">今 日 一 串</button>
+      </div>
+      <div class="btnrow" style="margin-top:0.1em">
+        <button id="randBtn" class="goldline">随 机 一 串</button>
+      </div>
+      <div class="btnrow" id="contRow" style="margin-top:0.1em; display:none"></div>
+      <div class="btnrow" style="margin-top:0.4em">
+        <button id="notesBtn" class="ghost">我 的 工 坊</button>
+        <button id="shareSiteBtn" class="ghost">分 享 串 珠</button>
+        <button id="a2hsBtn" class="ghost" style="display:none">放 到 桌 面</button>
+      </div>
+      <p class="hint" id="introCount"></p>
+      <p class="hint" style="margin-top:0.4em"><a href="https://github.com/xiayuhkust/beadstring" style="color:inherit;opacity:0.75" target="_blank" rel="noopener">开源代码 · 开放数据</a></p>
+    </section>
+
+    <!-- 呼吸 -->
+    <section id="sBreath" class="stage">
+      <div id="breathWhy">&nbsp;</div>
+      <div id="bc"></div>
+      <div id="bt">&nbsp;</div>
+      <p class="hint">轻触任意处可跳过</p>
+    </section>
+
+    <!-- 珠已备好（状态中的过场） -->
+    <section id="sArrive" class="stage">
+      <div id="arriveBox"></div>
+    </section>
+
+    <!-- 收工卡（串满十珠的工休仪式） -->
+    <section id="sRest" class="stage" style="text-align:center; padding-top:12vh">
+      <div class="stageTitle" style="margin-top:0">收 工</div>
+      <svg id="restSvg" viewBox="0 0 340 130" style="margin-top:2em; width:min(80vw,340px); overflow:visible"></svg>
+      <p id="restCap" class="hint" style="margin-top:1.2em; opacity:0.7"></p>
+      <div id="restList" style="margin-top:1.4em; font-size:0.8rem; letter-spacing:0.12em;
+        line-height:2.4; opacity:0.75"></div>
+      <div class="btnrow" style="margin-top:2em">
+        <button id="restBtn" class="gold">回 到 呼 吸</button>
+      </div>
+    </section>
+
+    <!-- 珠子一 -->
+    <section id="sBeadA" class="stage">
+      <div class="stageTitle">第 一 颗 珠 子</div>
+      <div class="beadCard">
+        <div class="beadRef" id="refA"></div>
+        <div class="verses" id="versesA"></div>
+      </div>
+      <div class="btnrow"><button id="toB">拿 起 第 二 颗</button></div>
+    </section>
+
+    <!-- 珠子二 -->
+    <section id="sBeadB" class="stage">
+      <div class="stageTitle">第 二 颗 珠 子</div>
+      <div class="beadCard">
+        <div class="beadRef" id="refB"></div>
+        <div class="verses" id="versesB"></div>
+      </div>
+      <p class="hint" id="depthLine"></p>
+      <div class="btnrow"><button id="toFind" class="gold">找 出 那 条 线</button></div>
+    </section>
+
+    <!-- 找线 -->
+    <section id="sFind" class="stage">
+      <div class="stageTitle">找 线</div>
+      <p class="hint" style="margin-top:0.8em">点选两段中你认为相连的词——先点一边，再点另一边</p>
+      <div id="findWrap">
+        <svg id="threadSvg"></svg>
+        <div class="beadCard" data-side="a">
+          <div class="beadRef" id="frefA"></div>
+          <div class="verses" id="fversesA"></div>
+        </div>
+        <div class="beadCard" data-side="b">
+          <div class="beadRef" id="frefB"></div>
+          <div class="verses" id="fversesB"></div>
+        </div>
+      </div>
+      <div id="findFb">&nbsp;</div>
+      <div class="btnrow">
+        <button id="knotBtn" class="gold" style="display:none">去 打 结</button>
+        <button id="revealBtn" class="ghost">看 答 案</button>
+        <button id="swapBtn" class="ghost">换 一 串</button>
+      </div>
+      <div id="tskList" style="display:none"></div>
+    </section>
+
+    <!-- 打结 -->
+    <section id="sKnot" class="stage">
+      <div class="stageTitle">打 结</div>
+      <div id="knotAnchors"></div>
+      <textarea id="reason" maxlength="100"
+        placeholder="写下你认为这条线为什么在这里……（可跳过，默认只有你自己能看见）"></textarea>
+      <div class="charCount"><span id="cc">0</span> / 100</div>
+      <label id="pubRow" style="display:none;font-size:0.78rem;opacity:0.75;cursor:pointer;
+        margin:0.2em auto 0.6em;max-width:30em;line-height:1.9">
+        <input type="checkbox" id="pubCk" style="accent-color:#f5cd8a;vertical-align:middle;margin-right:0.4em">
+        愿意把这条理由挂在珠上，给后来串它的人看（公开的理由会进入开放数据集）</label>
+      <div id="knotNotes"></div>
+      <div class="btnrow">
+        <button id="doneBtn" class="gold">串 成</button>
+        <button id="skipBtn" class="ghost">不 写 了 ， 直 接 串 成</button>
+      </div>
+    </section>
+
+    <!-- 串成 -->
+    <section id="sDone" class="stage">
+      <div class="stageTitle" style="margin-top:0">串 成 了</div>
+      <svg id="beadString" viewBox="0 0 340 120">
+        <path id="bsLine" d="M 20 60 Q 170 100 320 60" fill="none"
+          stroke="rgba(245,205,138,0.8)" stroke-width="1.6"
+          stroke-dasharray="400" stroke-dashoffset="400"/>
+        <circle id="bsB1" cx="20" cy="60" r="0" fill="#f5cd8a"/>
+        <circle id="bsB2" cx="320" cy="60" r="0" fill="#e8a75c"/>
+      </svg>
+      <div id="doneRefs"></div>
+      <div id="doneReason"></div>
+      <div id="doneSrc"></div>
+      <div class="btnrow">
+        <button id="againBtn" class="gold">再 串 一 串</button>
+        <a class="abtn" href="gongfang.html">去 工 坊</a>
+      </div>
+      <div class="btnrow" id="sameChRow" style="margin-top:0.1em; display:none"></div>
+      <div class="btnrow" id="doneReadRow" style="margin-top:0.1em; display:none"></div>
+      <div class="btnrow" style="margin-top:0.1em">
+        <button id="shareBeadBtn">送 这 颗 珠</button>
+      </div>
+      <p class="hint" id="doneHint">已挂进你的工坊 · 星图上多了一道光桥</p>
+    </section>
+
+    <!-- 笔记 -->
+    <section id="sNotes" class="stage">
+      <div class="stageTitle" style="margin-top:0">我 的 串 珠 笔 记</div>
+      <div id="noteList"></div>
+      <div class="btnrow"><button id="backBtn">回 去</button></div>
+    </section>
+  </main>
+
+  <div id="loadNote" style="display:none; position:fixed; left:50%; top:50%;
+    transform:translate(-50%,-50%); z-index:60; font-size:0.82rem;
+    letter-spacing:0.3em; text-indent:0.3em; opacity:0.6;">正 在 取 来 经 文 …</div>
+
+<script src="../data/verses-1.js" async></script>
+<script src="../data/verses-2.js" async></script>
+<script src="../data/verses-3.js" async></script>
+<script src="../data/books.js" async></script>
+<script src="../data/beads-1.js" async></script>
+<script src="../data/beads-2.js" async></script>
+<script>
+// ================================================================ 数据
+// 珠对来自 TSK / OpenBible.info cross-references（CC-BY），经文为和合本（公有领域）
+// seg: {t:文本, g:锚组号(可选)}；同组号在两侧各点一次即为"找到线"
+
+const PAIRS = [
+  {
+    id: 'jonah43-1kgs194', votes: 12,
+    source: 'TSK / OpenBible.info cross-references · 和合本',
+    label: '两个求死的先知',
+    wall: [['拿', 4], ['王上', 19]],
+    a: { ref: '约拿书 4:3, 6', segs: [
+      [{t:'「耶和华啊，'},{t:'现在求你取我的命吧！',g:1},{t:'因为我死了比活着还好。」'}],
+      [{t:'耶和华神安排'},{t:'一棵蓖麻，',g:2},{t:'使其发生高过约拿，'},
+       {t:'影儿遮盖他的头，'},{t:'救他脱离苦楚。'}],
+    ]},
+    b: { ref: '列王纪上 19:4（以利亚逃避耶洗别）', segs: [
+      [{t:'他自己在旷野走了一日的路程，'},{t:'来到一棵罗腾树下，',g:2},
+       {t:'就坐在那里求死，说：'}],
+      [{t:'「耶和华啊，罢了！'},{t:'求你取我的性命，',g:1},{t:'因为我不胜于我的列祖。」'}],
+    ]},
+  },
+  {
+    id: 'jonah42-amos76', votes: 3,
+    source: 'TSK / OpenBible.info cross-references · 和合本',
+    label: '后悔不降灾的神',
+    wall: [['拿', 4], ['摩', 7]],
+    a: { ref: '约拿书 4:2', segs: [
+      [{t:'「耶和华啊，'},{t:'我在本国的时候'},{t:'岂不是这样说吗？'},
+       {t:'我知道你是有恩典、有怜悯的神，'},{t:'不轻易发怒，'},{t:'有丰盛的慈爱，'},
+       {t:'并且后悔',g:1},{t:'不降所说的灾，',g:2},{t:'所以我急速逃往他施去。」'}],
+    ]},
+    b: { ref: '阿摩司书 7:5-6（阿摩司为以色列代求）', segs: [
+      [{t:'我就说：'},{t:'「主耶和华啊，求你止息；'},{t:'因为雅各微弱，'},
+       {t:'他怎能站立得住呢？」'}],
+      [{t:'耶和华为这事后悔说：',g:1},{t:'「这灾也可以免了。」',g:2}],
+    ]},
+  },
+  {
+    id: 'hos214-jer22', votes: 2,
+    source: 'TSK / OpenBible.info cross-references · 和合本',
+    label: '旷野的初恋',
+    wall: [['何', 2], ['耶', 2]],
+    a: { ref: '何西阿书 2:14', segs: [
+      [{t:'后来我必劝导她，'},{t:'领她到旷野，',g:1},{t:'对她说安慰的话。'}],
+    ]},
+    b: { ref: '耶利米书 2:2', segs: [
+      [{t:'耶和华如此说：'},{t:'你幼年的恩爱，'},{t:'婚姻的爱情，'},
+       {t:'你怎样在旷野、',g:1},{t:'在未曾耕种之地跟随我，'},{t:'我都记得。'}],
+    ]},
+  },
+  {
+    id: 'hos214-john1232', votes: 1,
+    source: 'TSK / OpenBible.info cross-references · 和合本',
+    label: '劝导与吸引',
+    wall: [['何', 2], ['约', 12]],
+    a: { ref: '何西阿书 2:14', segs: [
+      [{t:'后来'},{t:'我必劝导她，',g:1},{t:'领她到旷野，'},{t:'对她说安慰的话。'}],
+    ]},
+    b: { ref: '约翰福音 12:32（耶稣预言自己的死）', segs: [
+      [{t:'我若从地上被举起来，'},{t:'就要吸引万人来归我。',g:1}],
+    ]},
+  },
+];
+
+// —— 争议珠（轻负分区：有人踩过，也有人爱过——可以正常串，你自己判断）——
+PAIRS.push(
+  {
+    id: 'gen13-john1143', votes: -5, debate: true,
+    source: 'TSK / OpenBible.info cross-references · 和合本',
+    label: '话语一出，事就成了',
+    wall: [['创', 1], ['约', 11]],
+    a: { ref: '创世记 1:3', segs: [
+      [{t:'神说：'},{t:'「要有光」，',g:1},{t:'就有了光。',g:2}],
+    ]},
+    b: { ref: '约翰福音 11:43-44', segs: [
+      [{t:'说了这话，'},{t:'就大声呼叫说：'},{t:'「拉撒路出来！」',g:1},
+       {t:'那死人就出来了，',g:2},{t:'手脚裹着布，'},{t:'脸上包着手巾。'}],
+      [{t:'耶稣对他们说：'},{t:'「解开，叫他走！」'}],
+    ]},
+  },
+);
+
+// 珠的深度（按社区票数）
+function depthOf(votes) {
+  if (votes < 0)    return '争议珠 · 有人踩过也有人爱过';
+  if (votes >= 100) return '浅滩珠 · 众人皆见';
+  if (votes >= 10)  return '近岸珠';
+  if (votes >= 2)   return '深水珠 · 少有人至';
+  return '深海珠 · 几乎无人见过';
+}
+
+// ================================================================ 动态珠（书架/掣签入口，跑在全库上）
+
+const STOP = new Set(['耶和华','以色列','我们','你们','他们','因为','所以','这样','怎样',
+  '现在','没有','不是','岂不','如此','之后','以后']);
+const COMMONCH = new Set('的了是在有不说就都也又与和他她它我你们这那中上下人所之乎者' +
+  '必将要来去使叫于为吗呢啊吧曾已而其或若及且并从自到向对把被神主日子时候地方');
+
+function segLine(text) {
+  const parts = text.match(/[^，。；：！？、“”‘’…—]+[，。；：！？、“”‘’…—]*/g) || [text];
+  return parts.filter(t => t.trim()).map(t => ({ t }));
+}
+
+function grams(text, len) {
+  const s = text.replace(/[^一-鿿]/g, '#');
+  const out = [];
+  for (let i = 0; i + len <= s.length; i++) {
+    const g = s.slice(i, i + len);
+    if (!g.includes('#')) out.push(g);
+  }
+  return out;
+}
+
+// 两段文本的共词锚（长词优先，最多 3 组）
+function commonAnchors(ta, tb) {
+  const found = [];
+  for (const len of [4, 3, 2]) {
+    for (const g of grams(ta, len)) {
+      if (found.length >= 3) break;
+      if (STOP.has(g)) continue;
+      if (len === 2 && [...g].every(c => COMMONCH.has(c))) continue;
+      if (!tb.includes(g)) continue;
+      if (found.some(u => u.includes(g) || g.includes(u))) continue;
+      found.push(g);
+    }
+  }
+  return found;
+}
+
+function buildDynamicPair(qs) {
+  const pa = qs.get('a'), pb = qs.get('b');
+  if (!pa || !pb || !window.VERSES) return null;
+  const parse = (s) => {
+    const m = s.match(/^(\D+)(\d+):(\d+)(?:-(\d+))?$/);
+    return m ? { book: m[1], ch: Number(m[2]), v1: Number(m[3]), v2: Number(m[4] || m[3]) } : null;
+  };
+  const A = parse(pa), B = parse(pb);
+  if (!A || !B) return null;
+  if (A.v2 === A.v1) A.v2 = A.v1 + 1;   // 单节扩为两节的短读经
+  if (B.v2 === B.v1) B.v2 = B.v1 + 1;
+  const pull = (P) => {
+    const out = [];
+    for (let v = P.v1; v <= Math.min(P.v2, P.v1 + 3); v++) {
+      const t = window.VERSES[`${P.book}${P.ch}:${v}`];
+      if (t === undefined) break;
+      out.push([v, t]);
+    }
+    return out;
+  };
+  const va = pull(A), vb = pull(B);
+  if (!va.length || !vb.length) return null;
+  const anchors = commonAnchors(va.map(x => x[1]).join(''), vb.map(x => x[1]).join(''));
+  const mkSegs = (list) => list.map(([v, t]) => {
+    const line = segLine(t);
+    for (const seg of line) {
+      anchors.forEach((g, i) => { if (!seg.g && seg.t.includes(g)) seg.g = i + 1; });
+    }
+    return line;
+  });
+  const full = window.BOOKFULL || {};
+  const refStr = (P, list) => `${full[P.book] || P.book} ${P.ch}:${list[0][0]}` +
+    (list.length > 1 ? `-${list[list.length - 1][0]}` : '');
+  const votes = Number(qs.get('v') || 0);
+  return {
+    id: `dyn-${pa}-${pb}`, votes, dynamic: true, free: anchors.length === 0,
+    source: 'TSK / OpenBible.info cross-references · 和合本',
+    label: `${A.book}${A.ch} ↔ ${B.book}${B.ch}`,
+    wall: [[A.book, A.ch], [B.book, B.ch]],
+    words: anchors,
+    a: { ref: refStr(A, va), segs: mkSegs(va) },
+    b: { ref: refStr(B, vb), segs: mkSegs(vb) },
+  };
+}
+
+// URL 带珠参数：不落开场页，等经文库就绪后直达调息（数据脚本已 async）
+const QS = new URLSearchParams(location.search);
+if (QS.get('a') && QS.get('b')) window.AUTOSTART = true;
+
+// 今日一串：以日期为种子在全库确定性取珠——全体用户同日同珠
+function dailySeed() {
+  const d = new Date();
+  return d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate();
+}
+function dailyBead() {                      // 需 beadsReady()
+  const pool = window.BEADS.filter(r => r[2] >= 10);   // 公珠取近岸以上，品质保底
+  let x = dailySeed() >>> 0;
+  x = Math.imul(x ^ (x >>> 15), 2246822519) >>> 0;
+  x = Math.imul(x ^ (x >>> 13), 3266489917) >>> 0;
+  x = (x ^ (x >>> 16)) >>> 0;
+  return pool[x % pool.length];
+}
+function goBead(r) {
+  location.href = 'index.html?a=' + encodeURIComponent(r[0] + ':' + r[4]) +
+    '&b=' + encodeURIComponent(r[1] + ':' + r[5]) + '&v=' + r[2] + '&n=' + r[3];
+}
+function dailyGo() {
+  waitReady(document.getElementById('startBtn'), () => goBead(dailyBead()));
+}
+
+function strungKeys() {
+  const set = new Set();
+  try {
+    for (const e of JSON.parse(localStorage.getItem('chuanzhu_strings')) || []) {
+      if (e.meta && e.meta.wall)
+        set.add(e.meta.wall.map(w => w[0] + w[1]).sort().join('|'));
+    }
+  } catch (e) {}
+  return set;
+}
+function keyOfWall(wall) { return wall.map(w => w[0] + w[1]).sort().join('|'); }
+
+// 数据分片就绪检测（CDN 对 <2MB js 自动 gzip，故分片加载）
+function versesReady() { return window.__VP && window.__VP === window.__VP_TOTAL; }
+function beadsReady() {
+  if (window.BEADS) return true;
+  if (window.__BP && window.__BP_TOTAL && window.__BP.length === window.__BP_TOTAL) {
+    window.BEADS = window.__BP.join(';').split(';').map(s => {
+      const p = s.split('|');
+      return [p[0], p[1], +p[2], +p[3], p[4], p[5]];
+    });
+    return true;
+  }
+  return false;
+}
+// 跳转前把珠库+经文全部等完：跳转会打断下载重头再来，等完再跳则全走缓存瞬时进入
+function allReady() { return beadsReady() && versesReady() && !!window.BOOKFULL; }
+function loadPct() {
+  const done = (window.__BP ? window.__BP.length : 0) + (window.__VP || 0) + (window.BOOKFULL ? 1 : 0);
+  const total = (window.__BP_TOTAL || 2) + (window.__VP_TOTAL || 3) + 1;
+  return done + '/' + total;
+}
+function waitReady(btn, cb) {
+  if (allReady()) { cb(); return; }
+  if (btn) btn.disabled = true;
+  const tick = () => { if (btn) btn.textContent = '加 载 中 ' + loadPct() + ' …'; };
+  tick();
+  const t = setInterval(() => {
+    if (allReady()) { clearInterval(t); if (btn) btn.disabled = false; cb(); } else tick();
+  }, 250);
+}
+
+// 同章继续：某章名下未串过的珠，按认可度从高到低取
+function chapterPool(chId) {
+  const strung = strungKeys();
+  return window.BEADS.filter(r => (r[0] === chId || r[1] === chId) &&
+    !strung.has([r[0], r[1]].sort().join('|')));
+}
+function chapterGo(chId, btn) {
+  waitReady(btn, () => {
+    const pool = chapterPool(chId).sort((x, y) => y[2] - x[2]);
+    if (pool.length) goBead(pool[0]);
+  });
+}
+function lastChs() {
+  try {
+    const a = JSON.parse(localStorage.getItem('chuanzhu_lastch'));
+    return Array.isArray(a) ? a : null;
+  } catch (e) { return null; }
+}
+
+// 随机一串：从全库抽一颗未串过的（合计 3 票以上保底质量）
+function randomGo(btn) {
+  waitReady(btn || document.getElementById('randBtn'), () => {
+    const strung = strungKeys();
+    let pool = window.BEADS.filter(r => r[2] >= 3 && !strung.has([r[0], r[1]].sort().join('|')));
+    if (!pool.length) pool = window.BEADS;
+    const r = pool[Math.floor(Math.random() * pool.length)];
+    location.href = 'index.html?a=' + encodeURIComponent(r[0] + ':' + r[4]) +
+      '&b=' + encodeURIComponent(r[1] + ':' + r[5]) + '&v=' + r[2] + '&n=' + r[3];
+  });
+}
+
+// ================================================================ 状态与存档
+
+const S = {
+  pairIdx: 0, pair: null,
+  found: new Set(), sel: null,   // sel = {side, g, el}
+  matchedEls: [],                 // [[elA, elB], ...] 供重绘
+};
+
+function loadStrings() {
+  try { return JSON.parse(localStorage.getItem('chuanzhu_strings')) || []; } catch (e) { return []; }
+}
+function saveString(entry) {
+  const arr = loadStrings(); arr.unshift(entry);
+  localStorage.setItem('chuanzhu_strings', JSON.stringify(arr));
+}
+// 墙存档：两章升到「联结」；连线注册进墙的联结表
+function lightWall(pair) {
+  let s = {};
+  try { s = JSON.parse(localStorage.getItem('wall1189')) || {}; } catch (e) {}
+  for (const [b, c] of pair.wall) s[b + c] = Math.max(s[b + c] || 0, 4);
+  localStorage.setItem('wall1189', JSON.stringify(s));
+  let links = [];
+  try { links = JSON.parse(localStorage.getItem('chuanzhuLinks')) || []; } catch (e) {}
+  const [w1, w2] = pair.wall;
+  if (!links.some(l => l[0] === w1[0] && l[1] === w1[1] && l[2] === w2[0] && l[3] === w2[1])) {
+    links.push([w1[0], w1[1], w2[0], w2[1], pair.label]);
+    localStorage.setItem('chuanzhuLinks', JSON.stringify(links));
+  }
+}
+
+// ================================================================ 舞台切换
+
+const $ = (id) => document.getElementById(id);
+function go(id) {
+  document.querySelectorAll('.stage').forEach(s => s.classList.remove('on'));
+  $(id).classList.add('on');
+  window.scrollTo(0, 0);
+}
+
+// ================================================================ 渲染
+
+function renderVerses(el, segs, { tappable = false, lineDelay = 0 } = {}) {
+  el.innerHTML = '';
+  segs.forEach((line, li) => {
+    const div = document.createElement('span');
+    div.className = 'vline';
+    line.forEach(seg => {
+      const sp = document.createElement('span');
+      sp.textContent = seg.t;
+      if (tappable) { sp.className = 'seg'; if (seg.g) sp.dataset.g = seg.g; }
+      div.appendChild(sp);
+    });
+    el.appendChild(div);
+    if (lineDelay) setTimeout(() => div.classList.add('show'), 400 + li * lineDelay);
+    else div.classList.add('show');
+  });
+}
+
+function startPair(idx) {
+  S.pairIdx = ((idx % PAIRS.length) + PAIRS.length) % PAIRS.length;
+  S.pair = PAIRS[S.pairIdx];
+  S.found = new Set(); S.sel = null; S.matchedEls = [];
+  $('threadSvg').innerHTML = '';
+  $('findFb').innerHTML = '&nbsp;';
+  $('knotBtn').style.display = 'none';
+  $('reason').value = ''; $('cc').textContent = '0';
+
+  $('refA').innerHTML = `<i>${S.pair.a.ref}</i>`;
+  renderVerses($('versesA'), S.pair.a.segs, { lineDelay: 1400 });
+  go('sBeadA');
+}
+
+// ================================================================ 找线
+
+function totalGroups() {
+  const gs = new Set();
+  for (const line of S.pair.a.segs) for (const s of line) if (s.g) gs.add(s.g);
+  return gs.size;
+}
+
+function setupFind() {
+  $('tskList').innerHTML = ''; $('tskList').style.display = 'none';
+  $('frefA').innerHTML = `<i>${S.pair.a.ref}</i>`;
+  $('frefB').innerHTML = `<i>${S.pair.b.ref}</i>`;
+  renderVerses($('fversesA'), S.pair.a.segs, { tappable: true });
+  renderVerses($('fversesB'), S.pair.b.segs, { tappable: true });
+  if (S.pair.neg) {
+    $('findFb').innerHTML = '社区给这串投了负分。你自己看看——线，在哪里？';
+  } else if (S.pair.free) {
+    $('findFb').innerHTML = '这颗珠在中文词面上没有共词——线在意象深处。<br>任选两边你看见呼应的词，结你自己的结。';
+  }
+  go('sFind');
+}
+
+function drawThread(elA, elB, animate = true) {
+  const wrap = $('findWrap');
+  const wr = wrap.getBoundingClientRect();
+  const svg = $('threadSvg');
+  svg.setAttribute('width', wr.width); svg.setAttribute('height', wr.height);
+  const r1 = elA.getBoundingClientRect(), r2 = elB.getBoundingClientRect();
+  const x1 = r1.left + r1.width / 2 - wr.left, y1 = r1.bottom - wr.top;
+  const x2 = r2.left + r2.width / 2 - wr.left, y2 = r2.top - wr.top;
+  const my = (y1 + y2) / 2, mx = (x1 + x2) / 2 + 30;
+  const p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  p.setAttribute('d', `M ${x1} ${y1} Q ${mx} ${my} ${x2} ${y2}`);
+  p.setAttribute('class', 'thread');
+  if (!animate) p.style.animation = 'none', p.style.strokeDashoffset = 0;
+  svg.appendChild(p);
+}
+function redrawThreads() {
+  $('threadSvg').innerHTML = '';
+  for (const [a, b] of S.matchedEls) drawThread(a, b, false);
+}
+window.addEventListener('resize', () => { if (S.matchedEls.length) redrawThreads(); });
+
+function onMatched(g, elA, elB) {
+  S.found.add(g);
+  elA.classList.add('match'); elB.classList.add('match');
+  // 同组其余段一并点亮
+  document.querySelectorAll(`#fversesA .seg[data-g="${g}"], #fversesB .seg[data-g="${g}"]`)
+    .forEach(e => e.classList.add('match'));
+  S.matchedEls.push([elA, elB]);
+  drawThread(elA, elB, true);
+  const total = totalGroups();
+  $('findFb').innerHTML = S.pair.free
+    ? '<b>这是你看见的线。</b>可以继续找，也可以去打结。'
+    : (S.found.size >= total
+      ? '这一串上的线，都被你找到了。'
+      : `<b>你找到了。</b>两百年前的串珠人，划的也是这里。（${S.found.size} / ${total}）`);
+  $('knotBtn').style.display = 'inline-block';
+}
+
+document.addEventListener('click', (e) => {
+  const seg = e.target.closest('.seg');
+  if (!seg || !$('sFind').classList.contains('on')) return;
+  if (seg.classList.contains('match')) return;
+  const side = seg.closest('.beadCard').dataset.side;
+  const g = seg.dataset.g ? Number(seg.dataset.g) : null;
+
+  if (!S.sel) {
+    S.sel = { side, g, el: seg };
+    seg.classList.add('sel');
+    $('findFb').innerHTML = '在另一段里，找它的另一头……';
+    return;
+  }
+  if (S.sel.side === side) {          // 换选同侧
+    S.sel.el.classList.remove('sel');
+    S.sel = { side, g, el: seg };
+    seg.classList.add('sel');
+    return;
+  }
+  // 异侧：判定
+  const first = S.sel;
+  first.el.classList.remove('sel');
+  S.sel = null;
+  if (S.pair.free) {
+    // 自由结：没有词面共线的珠，任意跨侧配对都是你自己结的线
+    const gid = 100 + S.found.size;
+    seg.dataset.g = gid; first.el.dataset.g = gid;
+    onMatched(gid, side === 'a' ? seg : first.el, side === 'b' ? seg : first.el);
+  } else if (first.g && g && first.g === g) {
+    onMatched(g, side === 'a' ? seg : first.el, side === 'b' ? seg : first.el);
+  } else {
+    seg.classList.add('shake'); first.el.classList.add('shake');
+    setTimeout(() => { seg.classList.remove('shake'); first.el.classList.remove('shake'); }, 400);
+    $('findFb').innerHTML = '这两处……好像不在同一条线上。再试试，或者「看答案」。';
+  }
+});
+
+$('revealBtn').addEventListener('click', () => {
+  if (!S.pair) return;
+  if (S.pair.neg) {
+    $('findFb').innerHTML = S.pair.negText +
+      '<br><span style="opacity:0.6">此珠不可打结、不上墙——换一串吧。</span>';
+    return;
+  }
+  if (S.pair.free) {
+    $('findFb').innerHTML = '这颗珠没有词面共线可以显示——它的线，只能由你来结。';
+    renderTskList();
+    return;
+  }
+  const groups = new Set();
+  document.querySelectorAll('#fversesA .seg[data-g]').forEach(e => groups.add(Number(e.dataset.g)));
+  for (const g of groups) {
+    if (S.found.has(g)) continue;
+    const elA = document.querySelector(`#fversesA .seg[data-g="${g}"]`);
+    const elB = document.querySelector(`#fversesB .seg[data-g="${g}"]`);
+    if (elA && elB) onMatched(g, elA, elB);
+  }
+  $('findFb').innerHTML = '线在这里。看答案不减损什么——看见了，就是得着。';
+  renderTskList();
+});
+
+// ---- TSK 节级线索（v2 索引：tsk/<OSIS>.js 按卷按需加载，语言无关，zh 经 zhmap 渲染）----
+const TSKQ = {};
+function tskFetch(file) {
+  if (!TSKQ[file]) TSKQ[file] = new Promise(res => {
+    const sc = document.createElement('script');
+    sc.src = '../data/tsk/' + file + '.js';
+    sc.onload = () => res(); sc.onerror = () => res();
+    document.head.appendChild(sc);
+  });
+  return TSKQ[file];
+}
+function tskThreads(chA, chB) {   // OSIS 章 id；返回 [[vA, vB, votes], ...] 按票排序
+  const bA = (chA.match(/^([1-3]?[A-Za-z]+)/) || [])[1];
+  const bB = (chB.match(/^([1-3]?[A-Za-z]+)/) || [])[1];
+  if (!bA || !bB) return Promise.resolve([]);
+  return Promise.all([tskFetch(bA), tskFetch(bB)]).then(() => {
+    const out = [], seen = new Set();
+    const scan = (book, fromCh, toCh, flip) => {
+      const data = (window.TSKX || {})[book];
+      if (!data) return;
+      for (const row of data.split(';')) {
+        const p = row.split('|');
+        if (p.length < 3) continue;
+        const fv = p[0].split(':');
+        if (book + fv[0] !== fromCh) continue;
+        const mm = p[1].match(/^([1-3]?[A-Za-z]+\d+):(.+)$/);
+        if (!mm || mm[1] !== toCh) continue;
+        const va = flip ? mm[2] : fv[1], vb = flip ? fv[1] : mm[2];
+        if (seen.has(va + '|' + vb)) continue;
+        seen.add(va + '|' + vb);
+        out.push([va, vb, +p[2]]);
+      }
+    };
+    scan(bA, chA, chB, false);
+    scan(bB, chB, chA, true);
+    out.sort((x, y) => y[2] - x[2]);
+    return out;
+  });
+}
+
+// 众人的注脚：打结页折叠链接（给想不出来的人一个参考；UGC 一律转义）
+const esc = (t) => String(t).replace(/[&<>"']/g,
+  (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+function notesHTML(rows) {
+  const canAmen = window.cloudSignedIn && window.cloudSignedIn();
+  return rows.map((r) => '<div class="dnote">「' + esc(r.reason) + '」' +
+    '<span>—— ' + esc(r.display_name || '无名') + ' · ' + esc(r.strung_on || '') +
+    ' <button class="amen' + (r.mine ? ' on' : '') + '" data-sid="' + (+r.sid) + '"' +
+    ' data-on="' + (r.mine ? 1 : 0) + '"' + (canAmen ? '' : ' disabled') +
+    ' title="造就了我">♡ <b>' + (+r.amen_count || 0) + '</b></button></span></div>').join('');
+}
+function bindAmens(box) {
+  box.querySelectorAll('.amen').forEach((b) => b.addEventListener('click', () => {
+    const on = b.dataset.on === '1';
+    if (!window.cloudAmen) return;
+    window.cloudAmen(+b.dataset.sid, !on).then((ok) => {
+      if (!ok) return;
+      b.dataset.on = on ? '0' : '1';
+      b.classList.toggle('on', !on);
+      b.querySelector('b').textContent = Math.max(0, +b.querySelector('b').textContent + (on ? -1 : 1));
+    });
+  }));
+}
+function loadKnotNotes() {
+  const box = $('knotNotes');
+  box.innerHTML = '';
+  if (!S.pair || !S.pair.wall || S.pair.wall.length < 2 || !window.cloudNotes) return;
+  const pk = S.pair.wall.map((w) => w[0] + w[1]).sort().join('|');
+  window.cloudNotes(pk).then((rows) => {
+    if (!rows || !rows.length) return;
+    box.innerHTML = '<button class="noteLink">✎ ' + rows.length + ' 人在这颗珠上留过话 · 看看</button>';
+    box.querySelector('.noteLink').addEventListener('click', () => {
+      box.innerHTML = notesHTML(rows);
+      bindAmens(box);
+    });
+  });
+}
+
+// 原地换线：不重走呼吸与珠子登场，直接以新节对进入找线
+function switchThread(aRef, bRef, votes) {
+  const qs = new URLSearchParams();
+  qs.set('a', aRef); qs.set('b', bRef); qs.set('v', votes || 0);
+  const dyn = buildDynamicPair(qs);
+  if (!dyn) return;
+  // 挂回 PAIRS：当前是动态珠则原位替换，策展珠则插到面前（不覆盖策展内容）
+  PAIRS.splice(S.pairIdx, S.pair && S.pair.dynamic ? 1 : 0, dyn);
+  S.pair = PAIRS[S.pairIdx];
+  S.found = new Set(); S.sel = null; S.matchedEls = [];
+  $('threadSvg').innerHTML = '';
+  $('findFb').innerHTML = '&nbsp;';
+  $('knotBtn').style.display = 'none';
+  $('reason').value = ''; $('cc').textContent = '0';
+  try {
+    history.replaceState(null, '', 'index.html?a=' + encodeURIComponent(aRef) +
+      '&b=' + encodeURIComponent(bRef) + '&v=' + (votes || 0));
+  } catch (e) {}
+  setupFind();
+  go('sFind');
+}
+
+let ZH2O = null;
+function zhmapReady() {
+  return tskFetch('zhmap').then(() => {
+    if (!ZH2O && window.TSK_ZH) {
+      ZH2O = {};
+      for (const k in window.TSK_ZH) ZH2O[window.TSK_ZH[k]] = k;
+    }
+  });
+}
+function renderTskList() {
+  if (!S.pair || !S.pair.wall || S.pair.wall.length < 2 || S.pair.neg) return;
+  const box = $('tskList');
+  const zhA = S.pair.wall[0][0] + S.pair.wall[0][1];
+  const zhB = S.pair.wall[1][0] + S.pair.wall[1][1];
+  zhmapReady().then(() => {
+    if (!ZH2O) return;
+    const conv = (z) => { const m = z.match(/^([^0-9]+)(\d+)$/); return m && ZH2O[m[1]] ? ZH2O[m[1]] + m[2] : null; };
+    const A = conv(zhA), B = conv(zhB);
+    if (!A || !B) return;
+    tskThreads(A, B).then(list => {
+      if (!list.length || !S.pair || S.pair.wall[0][0] + S.pair.wall[0][1] !== zhA) return;
+      box.innerHTML =
+        `<div class="hint" style="margin-top:0">这颗珠上的线 · TSK 共 ${list.length} 条</div>` +
+        list.slice(0, 24).map(r =>
+          `<button class="tline" data-a="${zhA}:${r[0]}" data-b="${zhB}:${r[1]}" data-v="${r[2]}">` +
+          `<span>${zhA}:${r[0]} ↔ ${zhB}:${r[1]}</span><span style="opacity:0.6">${r[2]}</span></button>`).join('') +
+        (list.length > 24 ? `<div class="hint">……还有 ${list.length - 24} 条</div>` : '');
+      box.style.display = '';
+      box.querySelectorAll('.tline').forEach(el => el.addEventListener('click', () =>
+        switchThread(el.dataset.a, el.dataset.b, +el.dataset.v || 0)));
+    });
+  });
+}
+
+// ================================================================ 流程接线
+
+// ---- 调息节奏：12 小时一次；状态中串满 10 串则工休（修士编够十个篮子就起身祷告）----
+const BREATH_HOURS = 12, BREATH_COUNT = 10;
+
+function breathState() {
+  try { return JSON.parse(localStorage.getItem('chuanzhu_breath')) || {}; } catch (e) { return {}; }
+}
+function saveBreath(st) { localStorage.setItem('chuanzhu_breath', JSON.stringify(st)); }
+function breathNeed() {
+  const st = breathState();
+  if (!st.last || Date.now() - st.last > BREATH_HOURS * 3600 * 1000) return 'time';
+  if ((st.count || 0) >= BREATH_COUNT) return 'count';
+  return null;
+}
+
+function localDayKey() {
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') +
+    '-' + String(d.getDate()).padStart(2, '0');
+}
+
+// 收工卡：串满十珠工休时，先看一眼今天编成的小串
+function restCard() {
+  return new Promise((res) => {
+    let log = {};
+    try { log = JSON.parse(localStorage.getItem('chuanzhu_daylog')) || {}; } catch (e) {}
+    const items = (log.d === localDayKey() && log.items) ? log.items : [];
+    const n = items.length;
+    const P0 = { x: 20, y: 36 }, P1 = { x: 170, y: 112 }, P2 = { x: 320, y: 36 };
+    const pt = (t) => ({
+      x: (1 - t) * (1 - t) * P0.x + 2 * (1 - t) * t * P1.x + t * t * P2.x,
+      y: (1 - t) * (1 - t) * P0.y + 2 * (1 - t) * t * P1.y + t * t * P2.y,
+    });
+    let beads = '';
+    for (let i = 0; i < n; i++) {
+      const p = pt((i + 1) / (n + 1));
+      beads += `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="7"
+        fill="${i % 2 ? '#e8a75c' : '#f0c987'}"/>`;
+    }
+    $('restSvg').innerHTML =
+      `<path d="M 20 36 Q 170 112 320 36" fill="none"
+        stroke="rgba(240,201,135,0.8)" stroke-width="1.5"/>` + beads;
+    $('restCap').textContent =
+      `今日已串 ${n} 珠 · 修士说：编够十个篮子，就起身祷告`;
+    $('restList').innerHTML = items.map(it => `<div>${it[0]} ⸻ ${it[1]}</div>`).join('');
+    go('sRest');
+    $('restBtn').onclick = () => res();
+  });
+}
+
+async function enterFlow() {
+  const need = breathNeed();
+  if (need) {
+    if (need === 'count') await restCard();
+    $('breathWhy').textContent = need === 'count'
+      ? '篮子编好了。工作到此，先回到呼吸。'
+      : '进入之前，先让呼吸慢下来。';
+    go('sBreath');
+    await breathe(need === 'count' ? 1 : 2);
+    saveBreath({ last: Date.now(), count: 0 });
+  } else {
+    // 仍在状态中：珠已备好的过场动画（金线描出，双珠落线，结浮现，轻晃）
+    await arriveAnim();
+  }
+  startPair(S.pairIdx);
+}
+
+function arriveAnim() {
+  $('arriveBox').innerHTML = `
+    <svg viewBox="0 0 320 140">
+      <path class="arrThread" d="M 24 40 Q 160 118 296 40" fill="none"
+        stroke="rgba(245,205,138,0.75)" stroke-width="1.5"/>
+      <circle class="arrBead b1" cx="24" cy="40" r="9" fill="#f5cd8a"/>
+      <circle class="arrBead b2" cx="296" cy="40" r="9" fill="#e8a75c"/>
+      <circle class="arrKnot" cx="160" cy="79" r="3" fill="rgba(253,243,227,0.9)"/>
+    </svg>
+    <div class="arrCap">珠 已 备 好</div>`;
+  go('sArrive');
+  return sleep(3300);
+}
+
+$('startBtn').addEventListener('click', dailyGo);
+$('randBtn').addEventListener('click', () => randomGo($('randBtn')));
+// 读经入口：进去先见章节列表（选卷/章覆层），默认选中上次读到的
+$('readBtn').addEventListener('click', () => location.href = 'dushu.html?pick=1');
+$('notesBtn').addEventListener('click', () => location.href = 'gongfang.html');
+
+// 皮肤切换（角落图标）：白昼显月亮，夜里显太阳；地球图标开语言菜单
+const ICO_SUN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.6M12 18.9v2.6M2.5 12h2.6M18.9 12h2.6M5 5l1.8 1.8M17.2 17.2 19 19M19 5l-1.8 1.8M6.8 17.2 5 19"/></svg>';
+const ICO_MOON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M20 14.5A8.3 8.3 0 1 1 9.5 4a6.8 6.8 0 0 0 10.5 10.5z"/></svg>';
+function setThemeIco() {
+  $('themeIco').innerHTML = document.documentElement.dataset.theme === 'huiben' ? ICO_MOON : ICO_SUN;
+}
+setThemeIco();
+$('themeIco').addEventListener('click', () => {
+  const day = document.documentElement.dataset.theme === 'huiben';
+  if (day) {
+    delete document.documentElement.dataset.theme;
+    localStorage.setItem('chuanzhu_theme', 'night');
+  } else {
+    document.documentElement.dataset.theme = 'huiben';
+    localStorage.removeItem('chuanzhu_theme');
+  }
+  setThemeIco();
+});
+$('langIco').addEventListener('click', (e) => {
+  e.stopPropagation();
+  $('langMenu').classList.toggle('on');
+});
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('#langMenu') && !e.target.closest('#langIco'))
+    $('langMenu').classList.remove('on');
+});
+
+// 语言切换：两种部署都在各语言子目录带全量副本，路径统一可算
+document.querySelectorAll('.lang').forEach(b => b.addEventListener('click', () => {
+  try { localStorage.setItem('chuanzhu_lang', b.dataset.l); } catch (e) {}
+  const sub = (location.pathname.match(/\/(en|zh|es|pt)\//) || [])[1];
+  location.href = (sub ? '../' : '') + b.dataset.l + '/index.html';
+}));
+
+// 今日的珠已串成 → 入口只剩随机一串（最常用入口居主位）
+// 同时：上一串的章还有未串的珠 → 亮出"继续串"入口
+{
+  const t = setInterval(() => {
+    if (!beadsReady()) return;
+    clearInterval(t);
+    const r = dailyBead();
+    if (strungKeys().has([r[0], r[1]].sort().join('|'))) {
+      $('startBtn').style.display = 'none';
+      document.querySelector('#sIntro .monk').innerHTML =
+        '今日的珠已串成。<br>旷野还大——随手再取一颗吧。';
+    }
+    const chs = lastChs();
+    if (chs) {
+      const row = $('contRow');
+      chs.forEach(chId => {
+        if (!chapterPool(chId).length) return;
+        const b = document.createElement('button');
+        b.className = 'ghost';
+        b.textContent = '继 续 串 · ' + chId;
+        b.addEventListener('click', () => chapterGo(chId, b));
+        row.appendChild(b);
+      });
+      if (row.children.length) row.style.display = '';
+    }
+  }, 400);
+}
+
+// ---- 分享 ----
+const SITE_URL = location.origin + location.pathname;
+function legacyCopy(t) {
+  const ta = document.createElement('textarea');
+  ta.value = t; document.body.appendChild(ta); ta.select();
+  try { document.execCommand('copy'); } catch (e) {}
+  ta.remove();
+}
+async function doShare(text, url) {
+  if (navigator.share) {
+    try { await navigator.share({ text: text, url: url }); return 'shared'; }
+    catch (e) { if (e && e.name === 'AbortError') return 'shared'; }
+  }
+  try { await navigator.clipboard.writeText(text + '\n' + url); return 'copied'; }
+  catch (e) { legacyCopy(text + '\n' + url); return 'copied'; }
+}
+$('shareSiteBtn').addEventListener('click', async () => {
+  const res = await doShare('串珠 · 旷野的手工——读一颗珠的两端，找出那条线。', SITE_URL);
+  if (res === 'copied') {
+    $('shareSiteBtn').textContent = '已 复 制 链 接';
+    setTimeout(() => $('shareSiteBtn').textContent = '分 享 串 珠', 2200);
+  }
+});
+$('shareBeadBtn').addEventListener('click', async () => {
+  const link = (S.pair && S.pair.dynamic) ? location.href : SITE_URL;
+  const text = S.pair
+    ? `${S.pair.a.ref} ↔ ${S.pair.b.ref}\n这颗珠给你——串珠 · 旷野的手工`
+    : '串珠 · 旷野的手工';
+  const res = await doShare(text, link);
+  if (res === 'copied') {
+    $('shareBeadBtn').textContent = '已 复 制';
+    setTimeout(() => $('shareBeadBtn').textContent = '送 这 颗 珠', 2200);
+  }
+});
+$('toB').addEventListener('click', () => {
+  $('refB').innerHTML = `<i>${S.pair.b.ref}</i>`;
+  renderVerses($('versesB'), S.pair.b.segs, { lineDelay: 1400 });
+  $('depthLine').textContent = S.pair.debate
+    ? `社区投票 ${S.pair.votes} 票 · 争议珠——有人认为牵强，有人看见同一位用话语行事的主。你自己判断。`
+    : `两百年前的串珠人，把这两段连在了一起。社区投票 ${S.pair.votes} 票 · ${depthOf(S.pair.votes)}`;
+  go('sBeadB');
+});
+$('toFind').addEventListener('click', setupFind);
+$('swapBtn').addEventListener('click', () => startPair(S.pairIdx + 1));   // 不限次数
+$('knotBtn').addEventListener('click', () => {
+  const chips = [...S.found].map(g => {
+    const el = document.querySelector(`#fversesA .seg[data-g="${g}"]`);
+    return `<i>${el.textContent.replace(/[，。；「」！？、]/g, '')}</i>`;
+  }).join('');
+  $('knotAnchors').innerHTML = '你找到的线：' + chips;
+  go('sKnot');
+  loadKnotNotes();
+  $('reason').focus();
+});
+$('reason').addEventListener('input', () => {
+  $('cc').textContent = $('reason').value.length;
+  // 写了字才出现"愿意挂出来"的勾选——不写理由就没有公开可言
+  $('pubRow').style.display = $('reason').value.trim() ? 'block' : 'none';
+});
+
+function finish(withReason) {
+  const reason = withReason ? $('reason').value.trim() : '';
+  // 公开意愿：只在这次写了理由时以勾选为准；没写理由则保留旧串的选择
+  const pub = !!(reason && $('pubCk').checked);
+  const anchors = [...S.found].map(g => {
+    const el = document.querySelector(`#fversesA .seg[data-g="${g}"]`);
+    return el ? el.textContent : '';
+  });
+  // B 侧划中的词单独存——两侧原文措辞不同，回看高亮时各用各的
+  const anchorsB = S.matchedEls.map(([ea, eb]) => eb ? eb.textContent : '').filter(Boolean);
+  // 同一颗珠只占工坊一串：重复串成 = 更新原串（刷新日期、替换理由、合并锚词）
+  const key = S.pair.wall.map(w => w[0] + w[1]).sort().join('|');
+  const arr = loadStrings();
+  const exIdx = arr.findIndex(e => e.meta && e.meta.wall &&
+    e.meta.wall.map(w => w[0] + w[1]).sort().join('|') === key);
+  let repeated = false;
+  if (exIdx >= 0) {
+    repeated = true;
+    const ex = arr[exIdx];
+    ex.date = new Date().toISOString().slice(0, 10);
+    if (reason) { ex.reason = reason; ex.pub = pub; }
+    ex.anchors = [...new Set([...(ex.anchors || []), ...anchors])].filter(Boolean);
+    ex.anchorsB = [...new Set([...(ex.anchorsB || []), ...anchorsB])].filter(Boolean);
+    localStorage.setItem('chuanzhu_strings', JSON.stringify(arr));
+  } else {
+    saveString({
+      pairId: S.pair.id, label: S.pair.label,
+      refs: [S.pair.a.ref, S.pair.b.ref],
+      anchors, anchorsB, reason, pub, date: new Date().toISOString().slice(0, 10),
+      meta: { wall: S.pair.wall, votes: S.pair.votes,
+              words: S.pair.words || [], debate: !!S.pair.debate },
+    });
+  }
+  $('doneHint').textContent = repeated
+    ? '这颗珠你曾串过——结已更新，工坊里仍是那一串'
+    : '已挂进你的工坊 · 星图上多了一道光桥';
+  lightWall(S.pair);
+  // 串珠历：按本地日期累计（记录，不是连击）；日志供收工卡展示
+  {
+    let days = {};
+    try { days = JSON.parse(localStorage.getItem('chuanzhu_days')) || {}; } catch (e) {}
+    const key = localDayKey();
+    days[key] = (days[key] || 0) + 1;
+    localStorage.setItem('chuanzhu_days', JSON.stringify(days));
+    let log = {};
+    try { log = JSON.parse(localStorage.getItem('chuanzhu_daylog')) || {}; } catch (e) {}
+    if (log.d !== key) log = { d: key, items: [] };
+    log.items.push([S.pair.a.ref, S.pair.b.ref]);
+    localStorage.setItem('chuanzhu_daylog', JSON.stringify(log));
+  }
+  // 记录上一串的章，供"同章继续 / 继续串"入口使用
+  const myChs = [...new Set(S.pair.wall.map(w => w[0] + w[1]))];
+  localStorage.setItem('chuanzhu_lastch', JSON.stringify(myChs));
+  // 串成页的"同章再串"：本章未串珠中认可度最高的一颗
+  const scRow = $('sameChRow');
+  scRow.innerHTML = ''; scRow.style.display = 'none';
+  const fillSameCh = () => {
+    myChs.forEach(chId => {
+      if (!chapterPool(chId).length) return;
+      const b = document.createElement('button');
+      b.className = 'ghost';
+      b.textContent = '同 章 再 串 · ' + chId;
+      b.addEventListener('click', () => chapterGo(chId, b));
+      scRow.appendChild(b);
+    });
+    if (scRow.children.length) scRow.style.display = '';
+  };
+  if (beadsReady()) fillSameCh();
+  else {
+    const t = setInterval(() => {
+      if (beadsReady()) { clearInterval(t); fillSameCh(); }
+    }, 300);
+  }
+  // 从读经来的 → 回到读经（停在原节）；否则给"在这章里多坐一会"的整章入口
+  const rdRow = $('doneReadRow');
+  rdRow.innerHTML = '';
+  if (QS.get('back') === 'du') {
+    const b = document.createElement('button');
+    b.className = 'ghost';
+    b.textContent = '回 到 读 经';
+    b.addEventListener('click', () => location.href = 'dushu.html');
+    rdRow.appendChild(b);
+  } else {
+    S.pair.wall.forEach(([bk, c]) => {
+      const b = document.createElement('button');
+      b.className = 'ghost';
+      b.textContent = '读 ' + bk + c + ' 全 章';
+      b.addEventListener('click', () =>
+        location.href = 'dushu.html?bk=' + encodeURIComponent(bk) + '&ch=' + c);
+      rdRow.appendChild(b);
+    });
+  }
+  if (rdRow.children.length) rdRow.style.display = '';
+  const bst = breathState();
+  saveBreath({ last: bst.last || Date.now(), count: (bst.count || 0) + 1 });
+  $('doneRefs').innerHTML = `${S.pair.a.ref}<br>⸻<br>${S.pair.b.ref}`;
+  $('doneReason').textContent = reason ? `「${reason}」` : '';
+  $('doneSrc').textContent =
+    `珠对来源：${S.pair.source} · ${S.pair.votes} 票（${depthOf(S.pair.votes)}）`;
+  go('sDone');
+  const line = $('bsLine');
+  line.style.animation = 'none'; void line.offsetWidth;
+  line.style.animation = 'tdraw 1.8s ease forwards';
+  setTimeout(() => { $('bsB1').setAttribute('r', 9); $('bsB2').setAttribute('r', 9); }, 900);
+  updateIntroCount();
+}
+$('doneBtn').addEventListener('click', () => finish(true));
+$('skipBtn').addEventListener('click', () => finish(false));
+$('againBtn').addEventListener('click', () => randomGo($('againBtn')));
+
+// ================================================================ 笔记
+
+function showNotes() {
+  const arr = loadStrings();
+  $('noteList').innerHTML = arr.length
+    ? arr.map(n => `<div class="note">
+        <div class="nrefs">${n.refs[0]} ⸻ ${n.refs[1]}</div>
+        <div class="ndate">${n.date} · ${n.label}</div>
+        ${n.reason ? `<div class="nreason">「${n.reason}」</div>` : ''}
+      </div>`).join('')
+    : '<p class="hint" style="margin-top:3em">还没有串过珠子。</p>';
+  go('sNotes');
+}
+$('backBtn').addEventListener('click', () => go('sIntro'));
+
+function updateIntroCount() {
+  const n = loadStrings().length;
+  let text = n ? `你已串成 ${n} 串` :
+    '演示：四串低分珠（12 / 3 / 2 / 1 票）+ 一串争议珠（-5 票），可随意更换';
+  if (!breathNeed()) {
+    const left = BREATH_COUNT - (breathState().count || 0);
+    text += ` · 你在状态中，再串 ${left} 串后回到呼吸`;
+  }
+  $('introCount').textContent = text;
+  // 今日完成态：门口挂出今天的手工
+  try {
+    const days = JSON.parse(localStorage.getItem('chuanzhu_days')) || {};
+    const d = new Date();
+    const key = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') +
+      '-' + String(d.getDate()).padStart(2, '0');
+    if (days[key]) {
+      $('todayMark').textContent = `✦ 今日的手工 · 已串 ${days[key]} 珠`;
+      $('todayMark').style.display = 'block';
+    }
+  } catch (e) {}
+}
+
+// ================================================================ 呼吸
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+function breathe(cycles = 2) {
+  return new Promise(async (resolve) => {
+    let skipped = false;
+    const onTap = () => { skipped = true; };
+    window.addEventListener('pointerdown', onTap);
+    const bc = $('bc'), bt = $('bt');
+    for (let i = 0; i < cycles && !skipped; i++) {
+      bt.textContent = '吸 气';
+      bc.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.5)' }],
+        { duration: 4000, fill: 'forwards', easing: 'ease-in-out' });
+      for (let t = 0; t < 42 && !skipped; t++) await sleep(100);
+      bt.textContent = '缓 缓 呼 气';
+      bc.animate([{ transform: 'scale(1.5)' }, { transform: 'scale(1)' }],
+        { duration: 5000, fill: 'forwards', easing: 'ease-in-out' });
+      for (let t = 0; t < 52 && !skipped; t++) await sleep(100);
+    }
+    window.removeEventListener('pointerdown', onTap);
+    resolve();
+  });
+}
+
+// ================================================================ 颗粒 & 启动
+
+{
+  const g = $('grain'), gs = 140;
+  g.width = gs; g.height = gs;
+  g.style.width = '100vw'; g.style.height = '100vh';
+  g.style.imageRendering = 'pixelated';
+  const ctx = g.getContext('2d');
+  const re = () => {
+    const img = ctx.createImageData(gs, gs);
+    for (let i = 0; i < img.data.length; i += 4) {
+      const v = Math.random() * 255;
+      img.data[i] = img.data[i+1] = img.data[i+2] = v; img.data[i+3] = 255;
+    }
+    ctx.putImageData(img, 0, 0);
+  };
+  re(); setInterval(re, 120);
+}
+updateIntroCount();
+
+// PWA：注册最小 Service Worker（仅满足可安装条件，不缓存）
+if ('serviceWorker' in navigator && location.protocol === 'https:') {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+
+// 放到桌面：安卓/桌面 Chrome 走系统安装弹窗；iOS 无 API，给分享菜单指引
+{
+  let a2hsPrompt = null;
+  const a2hs = $('a2hsBtn');
+  const standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+  if (!standalone) a2hs.style.display = '';
+  window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); a2hsPrompt = e; });
+  a2hs.addEventListener('click', () => {
+    if (a2hsPrompt) { a2hsPrompt.prompt(); a2hsPrompt = null; return; }
+    alert(/iPhone|iPad|iPod/.test(navigator.userAgent)
+      ? '在 Safari 里点底部「分享」按钮，往下找到「添加到主屏幕」。'
+      : '在浏览器菜单里选择「添加到主屏幕」或「安装应用」。');
+  });
+}
+
+// 书架/掣签/随机直达：跳过开场页，等经文库就绪后进入调息节奏
+if (window.AUTOSTART) {
+  document.getElementById('sIntro').classList.remove('on');
+  document.getElementById('loadNote').style.display = 'block';
+  const t0 = Date.now();
+  const t = setInterval(() => {
+    if (versesReady() && window.BOOKFULL) {
+      clearInterval(t);
+      document.getElementById('loadNote').style.display = 'none';
+      const dyn = buildDynamicPair(QS);
+      if (dyn) {
+        PAIRS.unshift(dyn);
+        S.pairIdx = 0;
+        document.querySelector('#sIntro .sub').textContent =
+          `${dyn.label} · ${depthOf(dyn.votes)}`;
+        enterFlow();
+      } else {
+        document.getElementById('sIntro').classList.add('on');
+      }
+    } else {
+      // 显示进度、耐心等待；30 秒后附上重试链接但不放弃（慢网络照样能到达）
+      document.getElementById('loadNote').innerHTML =
+        '正 在 取 来 经 文 … ' + loadPct() +
+        (Date.now() - t0 > 30000
+          ? '<br><a style="color:#f5cd8a" href="javascript:location.reload()">网络不畅？点此重试</a>' : '');
+    }
+  }, 200);
+}
+</script>
+<script src="account.js" defer></script>
+</body>
+</html>

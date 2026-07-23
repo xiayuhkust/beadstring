@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<script>try{var _p=localStorage.getItem("chuanzhu_lang");if(_p&&_p!=="en"&&!location.search&&!location.hash&&!/[/](en|zh|es|pt)[/]/.test(location.pathname)){location.replace(_p+"/"+(location.pathname.split("/").pop()||"index.html"));}}catch(e){}</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#1c1722">
+<link rel="manifest" href="manifest-es.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<title>Estantería · BeadString</title>
+<script>try{var _t=localStorage.getItem("chuanzhu_theme");if(_t!=="night"){document.documentElement.dataset.theme="huiben";var _m=document.querySelector('meta[name="theme-color"]');if(_m)_m.content="#a8ddec";}}catch(e){}</script>
+<link rel="stylesheet" href="tokens.css">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { min-height: 100%; }
+  body {
+    font-family: Georgia, "Times New Roman", serif;
+    color: #fdf3e3; -webkit-font-smoothing: antialiased;
+    user-select: none; -webkit-user-select: none;
+    background: linear-gradient(180deg, #1c1722 0%, #30252f 45%, #61443a 78%, #a3744f 100%);
+    background-attachment: fixed;
+    overflow-x: hidden;
+  }
+  #grain { position: fixed; inset: 0; pointer-events: none; opacity: 0.06;
+           mix-blend-mode: overlay; z-index: 40; }
+  #vignette { position: fixed; inset: 0; pointer-events: none; z-index: 30;
+    background: radial-gradient(ellipse at 50% 38%, transparent 52%, rgba(12,7,5,0.55) 100%); }
+
+  main { position: relative; z-index: 10; max-width: 720px; margin: 0 auto; padding: 0 20px 12vh; }
+  header { text-align: center; padding: 6vh 0 1vh; }
+  h1 { font-size: clamp(1.8rem, 6vw, 2.4rem); font-weight: normal;
+       letter-spacing: 0.22em; text-transform: uppercase;
+       text-shadow: 0 2px 30px rgba(60,30,10,0.7); }
+  .cap { text-align: center; font-size: 0.72rem; letter-spacing: 0.05em;
+         opacity: 0.5; margin-top: 1em; line-height: 2.2; }
+  .cap a { color: #f5cd8a; }
+  h2 { font-size: 0.8rem; font-weight: normal; letter-spacing: 0.28em;
+       text-transform: uppercase;
+       opacity: 0.55; margin: 2.6em 0 1.1em; text-align: center; }
+
+  #crumb { text-align: center; font-size: 0.8rem; letter-spacing: 0.05em; opacity: 0.7;
+    margin-bottom: 1.2em; min-height: 1.5em; }
+  #crumb span { cursor: pointer; color: #f5cd8a; border-bottom: 1px dashed rgba(245,205,138,0.4); }
+  #books { display: grid; grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); gap: 8px; }
+  .bk {
+    text-align: center; padding: 0.7em 0.2em; cursor: pointer;
+    background: rgba(18,12,9,0.5); border: 1px solid rgba(253,243,227,0.3);
+    border-radius: 10px; transition: border-color 0.3s;
+  }
+  .bk:hover { border-color: rgba(245,205,138,0.55); }
+  .bk .bn { font-size: 0.88rem; letter-spacing: 0.02em; }
+  .bk .bc { font-size: 0.62rem; opacity: 0.6; margin-top: 0.3em; }
+  .bk.nt .bn { color: #f0d9ae; }
+
+  #chapters { display: none; grid-template-columns: repeat(auto-fill, minmax(52px, 1fr)); gap: 6px; }
+  .chp { text-align: center; padding: 0.55em 0.2em; cursor: pointer;
+    background: rgba(18,12,9,0.5); border: 1px solid rgba(253,243,227,0.3);
+    border-radius: 8px; font-size: 0.8rem; }
+  .chp:hover { border-color: rgba(245,205,138,0.55); }
+  .chp .cc { display: block; font-size: 0.58rem; opacity: 0.6; margin-top: 0.25em; }
+
+  .foot { text-align: center; margin-top: 4em; }
+  .foot a { display: inline-block; color: #f5cd8a; text-decoration: none;
+    font-size: 0.82rem; margin: 0.3em 0.35em; letter-spacing: 0.08em;
+    border: 1px solid rgba(245,205,138,0.7); border-radius: 2em;
+    padding: 0.55em 1.3em; background: rgba(245,205,138,0.1); }
+</style>
+<link rel="stylesheet" href="theme-huiben.css">
+</head>
+<body>
+  <a id="homeBtn" class="iconBtn" href="index.html" aria-label="Home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 11.2 12 4l8.5 7.2"/><path d="M5.8 10v10h12.4V10"/></svg></a>
+  <canvas id="grain"></canvas>
+  <div id="vignette"></div>
+
+  <main>
+    <header>
+      <h1>Estantería</h1>
+      <p class="cap" id="statLine">Trayendo la biblioteca de cuentas… (unos 5MB la primera vez)</p>
+    </header>
+
+    <h2>Elige un Capítulo</h2>
+    <p class="cap" style="margin-top:-0.4em">Elige un capítulo: el texto se abre con sus cuentas a la vista</p>
+    <div id="crumb">&nbsp;</div>
+    <div id="books"></div>
+    <div id="chapters"></div>
+
+    <p class="foot">
+      <a href="index.html">Ensartar una Cuenta</a>
+      <a href="dushu.html">Leer la Escritura</a>
+      <a href="gongfang.html">Mi Taller</a>
+    </p>
+  </main>
+
+<script src="../data/books-es.js" async></script>
+<script src="../data/beads-en-1.js" async></script>
+<script src="../data/beads-en-2.js" async></script>
+<script>
+// ================================================================ basics (skeleton first, counts later)
+
+const BOOKS = [
+  ['Gen',50],['Exod',40],['Lev',27],['Num',36],['Deut',34],['Josh',24],['Judg',21],
+  ['Ruth',4],['1Sam',31],['2Sam',24],['1Kgs',22],['2Kgs',25],['1Chr',29],['2Chr',36],
+  ['Ezra',10],['Neh',13],['Esth',10],['Job',42],['Ps',150],['Prov',31],['Eccl',12],
+  ['Song',8],['Isa',66],['Jer',52],['Lam',5],['Ezek',48],['Dan',12],['Hos',14],
+  ['Joel',3],['Amos',9],['Obad',1],['Jonah',4],['Mic',7],['Nah',3],['Hab',3],
+  ['Zeph',3],['Hag',2],['Zech',14],['Mal',4],['Matt',28],['Mark',16],['Luke',24],
+  ['John',21],['Acts',28],['Rom',16],['1Cor',16],['2Cor',13],['Gal',6],['Eph',6],
+  ['Phil',4],['Col',4],['1Thess',5],['2Thess',3],['1Tim',6],['2Tim',4],['Titus',3],
+  ['Phlm',1],['Heb',13],['Jas',5],['1Pet',5],['2Pet',3],['1John',5],['2John',1],
+  ['3John',1],['Jude',1],['Rev',22],
+];
+const OT_COUNT = 39;
+const $ = (id) => document.getElementById(id);
+const SN = (b) => (window.BOOKSHORT || {})[b] || b;
+
+function splitKey(k) {
+  const m = k.match(/^([1-3]?[A-Za-z]+)(\d+)$/);
+  return [m[1], Number(m[2])];
+}
+function beadsReady() {
+  if (window.BEADS) return true;
+  if (window.__BP && window.__BP_TOTAL && window.__BP.length === window.__BP_TOTAL) {
+    window.BEADS = window.__BP.join(';').split(';').map(s => {
+      const p = s.split('|');
+      return [p[0], p[1], +p[2], +p[3], p[4], p[5]];
+    });
+    return true;
+  }
+  return false;
+}
+
+let READY = false;
+const byChapter = {}, byBook = {};
+
+let curBook = null;
+
+function renderBooks() {
+  curBook = null;
+  $('crumb').innerHTML = '&nbsp;';
+  $('books').style.display = 'grid';
+  $('chapters').style.display = 'none';
+  $('books').innerHTML = BOOKS.map(([b], i) => `
+    <div class="bk ${i >= OT_COUNT ? 'nt' : ''}" data-b="${b}">
+      <div class="bn">${SN(b)}</div>
+      <div class="bc">${READY ? (byBook[b] || 0).toLocaleString() + ' cuentas' : '…'}</div>
+    </div>`).join('');
+}
+
+function renderChapters(book) {
+  curBook = book;
+  const n = BOOKS.find(x => x[0] === book)[1];
+  const full = window.BOOKFULL || {};
+  $('crumb').innerHTML = `<span data-nav="books">Todos los libros</span>　·　${full[book] || book}`;
+  $('books').style.display = 'none';
+  const el = $('chapters');
+  el.style.display = 'grid';
+  el.innerHTML = Array.from({ length: n }, (_, i) => {
+    const c = i + 1;
+    const cnt = READY ? (byChapter[book + c] || []).length : '…';
+    return `<div class="chp" data-c="${c}">${c}<span class="cc">${cnt}</span></div>`;
+  }).join('');
+}
+
+$('books').addEventListener('click', (e) => {
+  const b = e.target.closest('.bk');
+  if (b) renderChapters(b.dataset.b);
+});
+// pick a chapter -> read it with the beads showing
+$('chapters').addEventListener('click', (e) => {
+  const c = e.target.closest('.chp');
+  if (c) location.href = 'dushu.html?bk=' + encodeURIComponent(curBook) +
+    '&ch=' + c.dataset.c + '&beads=1';
+});
+$('crumb').addEventListener('click', (e) => {
+  if (e.target.dataset.nav === 'books') renderBooks();
+});
+
+renderBooks();
+
+// ================================================================ once the library arrives
+
+function initData() {
+  for (const r of window.BEADS) {
+    (byChapter[r[0]] = byChapter[r[0]] || []).push(r);
+    (byChapter[r[1]] = byChapter[r[1]] || []).push(r);
+    const bA = splitKey(r[0])[0], bB = splitKey(r[1])[0];
+    byBook[bA] = (byBook[bA] || 0) + 1;
+    if (bB !== bA) byBook[bB] = (byBook[bB] || 0) + 1;
+  }
+  for (const k in byChapter) byChapter[k].sort((a, b) => b[2] - a[2]);
+  READY = true;
+  $('statLine').textContent =
+    `${window.BEADS.length.toLocaleString()} cuentas por capítulo · los 66 libros · de TSK / OpenBible (CC-BY)`;
+  if (curBook !== null) renderChapters(curBook);
+  else renderBooks();
+}
+
+{
+  const t0 = Date.now();
+  const t = setInterval(() => {
+    if (beadsReady()) { clearInterval(t); initData(); }
+    else if (Date.now() - t0 > 90000) {
+      clearInterval(t);
+      $('statLine').innerHTML =
+        'La biblioteca no cargó: <a href="javascript:location.reload()">toca para reintentar</a>';
+    }
+  }, 250);
+}
+
+// grain
+{
+  const g = $('grain'), gs = 140;
+  g.width = gs; g.height = gs;
+  g.style.width = '100vw'; g.style.height = '100vh';
+  g.style.imageRendering = 'pixelated';
+  const ctx = g.getContext('2d');
+  const re = () => {
+    const img = ctx.createImageData(gs, gs);
+    for (let i = 0; i < img.data.length; i += 4) {
+      const v = Math.random() * 255;
+      img.data[i] = img.data[i+1] = img.data[i+2] = v; img.data[i+3] = 255;
+    }
+    ctx.putImageData(img, 0, 0);
+  };
+  re(); setInterval(re, 150);
+}
+</script>
+<script src="account.js" defer></script>
+<script>if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(function () {});</script>
+</body>
+</html>

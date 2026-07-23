@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<script>try{var _p=localStorage.getItem("chuanzhu_lang");if(_p&&_p!=="en"&&!location.search&&!location.hash&&!/[/](en|zh|es|pt)[/]/.test(location.pathname)){location.replace(_p+"/"+(location.pathname.split("/").pop()||"index.html"));}}catch(e){}</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#1c1722">
+<link rel="manifest" href="manifest-pt.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<title>Oficina · BeadString</title>
+<script>try{var _t=localStorage.getItem("chuanzhu_theme");if(_t!=="night"){document.documentElement.dataset.theme="huiben";var _m=document.querySelector('meta[name="theme-color"]');if(_m)_m.content="#a8ddec";}}catch(e){}</script>
+<link rel="stylesheet" href="tokens.css">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { min-height: 100%; }
+  body {
+    font-family: Georgia, "Times New Roman", serif;
+    color: #fdf3e3; -webkit-font-smoothing: antialiased;
+    user-select: none; -webkit-user-select: none;
+    background: linear-gradient(180deg, #1d1824 0%, #322734 45%, #6b4a3c 78%, #b07d55 100%);
+    background-attachment: fixed;
+    overflow-x: hidden;
+  }
+  .dune { position: fixed; left: -10vw; width: 120vw; border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+          pointer-events: none; z-index: 0; }
+  .dune.d1 { bottom: -12vh; height: 24vh; background: #281e18; opacity: 0.9; }
+  .dune.d2 { bottom: -16vh; height: 20vh; left: 20vw; width: 110vw; background: #1e1611; }
+  #grain { position: fixed; inset: 0; pointer-events: none; opacity: 0.06;
+           mix-blend-mode: overlay; z-index: 40; }
+  #vignette { position: fixed; inset: 0; pointer-events: none; z-index: 30;
+    background: radial-gradient(ellipse at 50% 38%, transparent 52%, rgba(12,7,5,0.55) 100%); }
+
+  main { position: relative; z-index: 10; max-width: 720px; margin: 0 auto; padding: 0 20px 12vh; }
+
+  header { text-align: center; padding: 7vh 0 2vh; }
+  h1 { font-size: clamp(1.8rem, 6vw, 2.4rem); font-weight: normal;
+       letter-spacing: 0.22em; text-transform: uppercase;
+       text-shadow: 0 2px 30px rgba(60,30,10,0.7); }
+
+  h2 { font-size: 0.8rem; font-weight: normal; letter-spacing: 0.28em;
+       text-transform: uppercase;
+       opacity: 0.55; margin: 3em 0 1.2em; text-align: center; }
+  .cap { text-align: center; font-size: 0.75rem; letter-spacing: 0.05em;
+         opacity: 0.5; margin-top: 0.8em; line-height: 2.2; }
+
+  /* prayer rope */
+  #ropeWrap { margin-top: 1.5em; }
+  #rope { width: 100%; height: 46px; display: block; }
+
+  /* seals */
+  #seals { display: flex; justify-content: center; flex-wrap: wrap; gap: 0.8em; margin-top: 1.6em; }
+  .seal { font-size: 0.7rem; letter-spacing: 0.08em; color: #f5cd8a;
+    border: 1px solid rgba(245,205,138,0.4); border-radius: 2em;
+    padding: 0.35em 1em; opacity: 0.85; }
+
+  /* strand wall */
+  #strands, #todayStrands { display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; }
+  .strand.td { border-color: rgba(245,205,138,0.7) !important;
+    background: rgba(245,205,138,0.09) !important;
+    box-shadow: 0 0 18px rgba(245,205,138,0.12); }
+  .strand {
+    background: rgba(18,12,9,0.55); border: 1px solid rgba(253,243,227,0.14);
+    border-radius: 12px; padding: 0.9em 0.9em 0.8em; cursor: pointer;
+    transition: border-color 0.3s;
+  }
+  .strand:hover { border-color: rgba(245,205,138,0.5); }
+  .strand svg { width: 100%; height: 52px; display: block; }
+  .strand .sl { font-size: 0.72rem; letter-spacing: 0.03em; color: #f5cd8a;
+    opacity: 0.9; margin-top: 0.5em; text-align: center; }
+  .strand .sr { font-size: 0.66rem; letter-spacing: 0.02em; opacity: 0.5;
+    margin-top: 0.35em; text-align: center; line-height: 1.8; }
+  .empty { grid-column: 1 / -1; text-align: center; opacity: 0.45;
+    font-size: 0.8rem; letter-spacing: 0.06em; padding: 2em 0; line-height: 2.4; }
+
+  /* detail panel */
+  #detail {
+    position: fixed; left: 50%; bottom: 4vh; transform: translateX(-50%);
+    z-index: 55; display: none; width: min(88vw, 440px);
+    max-height: 76vh; overflow-y: auto;
+    background: rgba(22,15,11,0.96); border: 1px solid rgba(245,205,138,0.35);
+    border-radius: 12px; padding: 1.3em 1.5em;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+  }
+  #dRefs { font-size: 0.85rem; letter-spacing: 0.05em; color: #f5cd8a; line-height: 2; }
+  #dMeta { font-size: 0.68rem; letter-spacing: 0.05em; opacity: 0.45; margin-top: 0.5em; }
+  .dPass { text-align: left; margin-top: 0.9em; font-size: 0.85rem;
+    line-height: 1.9; letter-spacing: 0.01em; opacity: 0.88; }
+  .dPass .pref { font-size: 0.66rem; letter-spacing: 0.06em; color: #f5cd8a;
+    opacity: 0.7; margin-bottom: 0.3em; }
+  .dPass .hl { font-weight: normal; color: #f5cd8a;
+    background: rgba(245,205,138,0.16); border-radius: 3px; padding: 0 2px;
+    text-shadow: 0 0 10px rgba(245,205,138,0.4); }
+  #dAnchors { margin-top: 0.8em; }
+  #dAnchors i { font-style: normal; font-size: 0.72rem; color: #f5cd8a;
+    border: 1px solid rgba(245,205,138,0.35); border-radius: 1.2em;
+    padding: 0.15em 0.7em; margin: 0 0.25em 0.4em 0; display: inline-block; }
+  #dReason { margin-top: 0.8em; font-size: 0.82rem; line-height: 1.9; opacity: 0.75; font-style: italic; }
+  #dClose, #dEditBtn, #dSaveBtn { margin-top: 1em; background: rgba(253,243,227,0.12);
+    border: 1px solid rgba(253,243,227,0.75);
+    color: #fdf3e3; border-radius: 2em; padding: 0.4em 1.3em; font-family: inherit;
+    font-size: 0.76rem; letter-spacing: 0.06em; cursor: pointer; }
+
+  /* chains */
+  #dTsk { margin-top: 1em; }
+  .tpass { margin: 0.3em 0 0.5em; padding: 0.7em 1em; border-left: 2px solid rgba(245,205,138,0.4);
+    font-size: 0.82rem; line-height: 2; opacity: 0.92; text-align: left; }
+  .tpass b { color: #f5cd8a; font-weight: normal; }
+  .tpass .thl { font-style: normal; color: #ffe9c4; background: rgba(245,205,138,0.28);
+    border-radius: 3px; padding: 0 1px; }
+  .dref { color: inherit; text-decoration: none;
+    border-bottom: 1px dashed rgba(245,205,138,0.5); }
+  #dNotes { margin-top: 1em; }
+  .dnote { background: rgba(20,13,9,0.3); border: 1px solid rgba(245,205,138,0.25);
+    border-radius: 10px; padding: 0.7em 1em; margin-top: 0.5em; font-size: 0.82rem;
+    line-height: 2; text-align: left; }
+  .dnote span { display: block; font-size: 0.72rem; opacity: 0.55; margin-top: 0.2em; }
+  .noteLink { background: none; border: none; cursor: pointer; font-family: inherit;
+    color: #f5cd8a; opacity: 0.8; font-size: 0.78rem; letter-spacing: 0.05em;
+    text-decoration: underline dashed rgba(245,205,138,0.5); padding: 0.2em 0; }
+  .noteLink:hover { opacity: 1; }
+  .amen { background: none; border: 1px solid rgba(245,205,138,0.35); border-radius: 2em;
+    color: inherit; font-family: inherit; font-size: 0.72rem; cursor: pointer;
+    padding: 0.1em 0.7em; margin-left: 0.5em; opacity: 0.8; }
+  .amen b { font-weight: normal; }
+  .amen.on { border-color: rgba(245,205,138,0.9); color: #f5cd8a; background: rgba(245,205,138,0.12); }
+  .amen[disabled] { cursor: default; opacity: 0.5; }
+  .tline { display: flex; justify-content: space-between; gap: 1em; width: 100%;
+    box-sizing: border-box; background: rgba(20,13,9,0.3); border: 1px solid rgba(245,205,138,0.25);
+    color: inherit; font-family: inherit; border-radius: 10px; padding: 0.5em 1em;
+    margin: 0.45em 0 0; cursor: pointer; font-size: 0.78rem; letter-spacing: 0.05em; }
+  .tline:hover { border-color: rgba(245,205,138,0.6); }
+  .chain {
+    background: rgba(18,12,9,0.55); border: 1px solid rgba(245,205,138,0.3);
+    border-radius: 12px; padding: 1em 1.2em; margin-bottom: 12px;
+    text-align: center;
+  }
+  .chain .cbeads { font-size: 0.9rem; letter-spacing: 0.04em; color: #f5cd8a; line-height: 2; }
+  .chain .cname { font-size: 0.68rem; letter-spacing: 0.08em; opacity: 0.5; margin-top: 0.4em; }
+
+  /* word drawers */
+  #drawers { display: flex; justify-content: center; flex-wrap: wrap; gap: 0.7em; }
+  .drawer { font-size: 0.8rem; letter-spacing: 0.04em; cursor: pointer;
+    border: 1px solid rgba(253,243,227,0.25); border-radius: 10px;
+    padding: 0.5em 1em; background: rgba(18,12,9,0.5); transition: border-color 0.3s; }
+  .drawer:hover { border-color: rgba(245,205,138,0.5); }
+  .drawer.on { border-color: rgba(245,205,138,0.8); color: #f5cd8a; }
+  .drawer b { font-weight: normal; color: #f5cd8a; margin-left: 0.5em; font-size: 0.7rem; }
+
+  /* bead calendar */
+  #calHead { display: flex; justify-content: center; align-items: center; gap: 1.2em;
+    font-size: 0.85rem; letter-spacing: 0.08em; }
+  .calbtn { background: rgba(253,243,227,0.1); border: 1px solid rgba(253,243,227,0.6);
+    color: #fdf3e3; border-radius: 50%; width: 2em; height: 2em; cursor: pointer;
+    font-family: inherit; font-size: 0.85rem; line-height: 1; }
+  #calGrid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px;
+    max-width: 380px; margin: 1em auto 0; }
+  .calCell { text-align: center; padding: 0.4em 0 0.35em; font-size: 0.7rem;
+    opacity: 0.5; border-radius: 8px; }
+  .calCell.wd { opacity: 0.4; font-size: 0.6rem; }
+  .calCell.has { opacity: 1; color: #f5cd8a; background: rgba(245,205,138,0.1);
+    border: 1px solid rgba(245,205,138,0.45); }
+  .calCell.today { outline: 1px dashed rgba(253,243,227,0.5); }
+  .calCell .dot { display: block; width: 5px; height: 5px; border-radius: 50%;
+    background: #f5cd8a; margin: 0.3em auto 0; box-shadow: 0 0 6px rgba(245,205,138,0.8); }
+
+  /* view & filter bar */
+  #viewBar { display: flex; justify-content: center; flex-wrap: wrap; gap: 0.45em;
+    margin-bottom: 1.2em; align-items: center; }
+  #viewBar button { background: rgba(253,243,227,0.12); color: #fdf3e3;
+    border: 1px solid rgba(253,243,227,0.7); border-radius: 2em;
+    padding: 0.32em 0.9em; font-family: inherit; font-size: 0.72rem;
+    letter-spacing: 0.04em; cursor: pointer; }
+  #viewBar button.on { border-color: rgba(245,205,138,0.9); color: #f5cd8a;
+    background: rgba(245,205,138,0.12); }
+  #viewBar .vsep { width: 1px; height: 1.1em; background: rgba(253,243,227,0.25); margin: 0 0.5em; }
+
+  .foot { text-align: center; margin-top: 4em; }
+  .foot a { display: inline-block; color: #f5cd8a; text-decoration: none;
+    font-size: 0.82rem; margin: 0.3em 0.35em; letter-spacing: 0.08em;
+    border: 1px solid rgba(245,205,138,0.7); border-radius: 2em;
+    padding: 0.55em 1.3em; background: rgba(245,205,138,0.1); }
+</style>
+<link rel="stylesheet" href="theme-huiben.css">
+</head>
+<body>
+  <a id="homeBtn" class="iconBtn" href="index.html" aria-label="Home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 11.2 12 4l8.5 7.2"/><path d="M5.8 10v10h12.4V10"/></svg></a>
+  <div class="dune d2"></div>
+  <div class="dune d1"></div>
+  <canvas id="grain"></canvas>
+  <div id="vignette"></div>
+
+  <main>
+    <header>
+      <h1>Oficina</h1>
+    </header>
+
+    <section id="vWorkshop">
+      <div id="ropeWrap">
+        <svg id="rope"></svg>
+        <p class="cap" id="ropeCap"></p>
+      </div>
+      <div id="seals"></div>
+
+      <div id="todaySec" style="display:none">
+        <h2>O Artesanato de Hoje</h2>
+        <div id="todayStrands"></div>
+      </div>
+
+      <h2>Calendário de Contas</h2>
+      <div id="calWrap">
+        <div id="calHead">
+          <button id="calPrev" class="calbtn">‹</button>
+          <span id="calTitle"></span>
+          <button id="calNext" class="calbtn">›</button>
+        </div>
+        <div id="calGrid"></div>
+        <p class="cap">Pegadas no deserto — os dias em que você veio ficam; os dias em branco não devem nada</p>
+      </div>
+
+      <h2>Mural de Contas</h2>
+      <div id="viewBar">
+        <button data-sort="new" class="on">Recentes</button>
+        <button data-sort="canon">Ordem Canônica</button>
+        <button data-sort="depth">Profundidade</button>
+        <span class="vsep"></span>
+        <button data-filt="all" class="on">Todas</button>
+        <button data-filt="cross">Entre Testamentos</button>
+        <button data-filt="deep">Profundas ou Mais</button>
+        <button data-filt="debate">Disputadas</button>
+        <button data-filt="reason">Com Nota</button>
+      </div>
+      <div id="strands"></div>
+
+      <div id="chainsSec" style="display:none">
+        <h2>Correntes · Conta com Conta</h2>
+        <div id="chains"></div>
+      </div>
+
+      <div id="drawersSec" style="display:none">
+        <h2>Gavetas de Palavras</h2>
+        <div id="drawers"></div>
+        <p class="cap">Você está compilando o seu próprio Tesouro</p>
+      </div>
+    </section>
+
+
+    <p class="foot">
+      <a href="index.html">Enfiar uma Conta</a>
+      <a href="dushu.html">Ler a Escritura</a>
+    </p>
+  </main>
+
+  <div id="detail">
+    <div id="dRefs"></div>
+    <div id="dMeta"></div>
+    <div id="dPasses"></div>
+    <div id="dAnchors"></div>
+    <div id="dReason"></div>
+    <div id="dTsk"></div>
+    <div id="dNotes"></div>
+    <div id="dEditWrap" style="display:none; margin-top:0.8em;">
+      <textarea id="dEditTa" maxlength="200" style="width:100%; min-height:4.5em;
+        background:rgba(253,243,227,0.06); color:#fdf3e3; resize:vertical;
+        border:1px solid rgba(245,205,138,0.4); border-radius:10px;
+        padding:0.8em 1em; font-family:inherit; font-size:0.85rem;
+        line-height:1.9; letter-spacing:0.02em;"
+        placeholder="Reescreva sua nota… (máx. 200 caracteres)"></textarea>
+    </div>
+    <button id="dClose">Fechar</button>
+    <button id="dEditBtn" style="margin-left:0.5em">Editar Nota</button>
+    <button id="dSaveBtn" style="display:none; margin-left:0.5em;
+      border-color:rgba(245,205,138,0.7); color:#f5cd8a;">Salvar</button>
+  </div>
+
+<script src="../data/verses-pt-1.js" async></script>
+<script src="../data/verses-pt-2.js" async></script>
+<script src="../data/verses-pt-3.js" async></script>
+<script src="../data/books-pt.js" async></script>
+<script>
+// ================================================================ metadata
+
+const BOOKS = [
+  ['Gen',50],['Exod',40],['Lev',27],['Num',36],['Deut',34],['Josh',24],['Judg',21],
+  ['Ruth',4],['1Sam',31],['2Sam',24],['1Kgs',22],['2Kgs',25],['1Chr',29],['2Chr',36],
+  ['Ezra',10],['Neh',13],['Esth',10],['Job',42],['Ps',150],['Prov',31],['Eccl',12],
+  ['Song',8],['Isa',66],['Jer',52],['Lam',5],['Ezek',48],['Dan',12],['Hos',14],
+  ['Joel',3],['Amos',9],['Obad',1],['Jonah',4],['Mic',7],['Nah',3],['Hab',3],
+  ['Zeph',3],['Hag',2],['Zech',14],['Mal',4],['Matt',28],['Mark',16],['Luke',24],
+  ['John',21],['Acts',28],['Rom',16],['1Cor',16],['2Cor',13],['Gal',6],['Eph',6],
+  ['Phil',4],['Col',4],['1Thess',5],['2Thess',3],['1Tim',6],['2Tim',4],['Titus',3],
+  ['Phlm',1],['Heb',13],['Jas',5],['1Pet',5],['2Pet',3],['1John',5],['2John',1],
+  ['3John',1],['Jude',1],['Rev',22],
+];
+const OT_COUNT = 39;
+
+function depthOf(votes) {
+  if (votes < 0)    return 'Disputada';
+  if (votes >= 100) return 'Rasas';
+  if (votes >= 10)  return 'Perto da margem';
+  if (votes >= 2)   return 'Águas profundas';
+  return 'O profundo';
+}
+function bookIdx(abbr) { return BOOKS.findIndex(b => b[0] === abbr); }
+function isOT(abbr) { const i = bookIdx(abbr); return i >= 0 && i < OT_COUNT; }
+function metaOf(s) { return s.meta || null; }
+function chLabel(chId) {
+  const m = String(chId).match(/^([1-3]?[A-Za-z]+)(\d+)$/);
+  return m ? `${SN(m[1])} ${m[2]}` : chId;
+}
+
+// ================================================================ archive
+
+let STR = [];
+try { STR = JSON.parse(localStorage.getItem('chuanzhu_strings')) || []; } catch (e) {}
+STR = STR.slice().reverse();   // chronological
+
+const $ = (id) => document.getElementById(id);
+const SN = (b) => (window.BOOKSHORT || {})[b] || b;
+
+// ================================================================ prayer rope
+
+{
+  const n = STR.length;
+  const svg = $('rope');
+  const W = Math.min(document.body.clientWidth - 40, 680), H = 46;
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  let html = `<path d="M 0 ${H/2} Q ${W/2} ${H/2 + 8} ${W} ${H/2}"
+    fill="none" stroke="rgba(253,243,227,0.35)" stroke-width="2"/>`;
+  const show = Math.min(n, 60);
+  for (let i = 0; i < show; i++) {
+    const t = (i + 1) / (show + 1);
+    const x = t * W;
+    const y = H/2 + 8 * 2 * t * (1 - t) * 2;
+    html += `<circle cx="${x}" cy="${y}" r="4.2" fill="none"
+      stroke="rgba(245,205,138,0.85)" stroke-width="2"/>`;
+  }
+  svg.innerHTML = html;
+  $('ropeCap').textContent = n
+    ? `Corda de oração · ${n} nó${n > 1 ? 's' : ''}${n > 60 ? ' (últimos 60)' : ''} · esta corda não se rompe, só cresce`
+    : 'Ainda não há nós na corda — enfie sua primeira conta e ate o primeiro';
+}
+
+// ================================================================ chains (strands sharing a chapter connect)
+
+function chapterKey(w) { return w[0] + w[1]; }
+function computeChains() {
+  const edges = [];
+  for (const s of STR) {
+    const m = metaOf(s);
+    if (m && m.wall) edges.push({ a: chapterKey(m.wall[0]), b: chapterKey(m.wall[1]), s });
+  }
+  const parent = {};
+  const find = (x) => { parent[x] = parent[x] ?? x; return parent[x] === x ? x : (parent[x] = find(parent[x])); };
+  const union = (x, y) => { parent[find(x)] = find(y); };
+  for (const e of edges) union(e.a, e.b);
+  const groups = {};
+  for (const e of edges) {
+    const r = find(e.a);
+    (groups[r] = groups[r] || []).push(e);
+  }
+  return Object.values(groups).filter(g => g.length >= 2).map(g => {
+    const deg = {}, adj = {};
+    for (const e of g) {
+      deg[e.a] = (deg[e.a] || 0) + 1; deg[e.b] = (deg[e.b] || 0) + 1;
+      (adj[e.a] = adj[e.a] || []).push(e.b);
+      (adj[e.b] = adj[e.b] || []).push(e.a);
+    }
+    const nodes = Object.keys(deg);
+    let start = nodes.find(k => deg[k] === 1) || nodes[0];
+    const path = [start], seen = new Set([start]);
+    let cur = start;
+    while (true) {
+      const next = (adj[cur] || []).find(k => !seen.has(k));
+      if (!next) break;
+      path.push(next); seen.add(next); cur = next;
+    }
+    const closed = nodes.every(k => deg[k] === 2) && g.length === nodes.length;
+    return { path, edges: g.length, closed };
+  });
+}
+
+// ================================================================ strand wall
+
+function strandSVG() {
+  return `<svg viewBox="0 0 120 52">
+    <path d="M 12 10 Q 60 46 108 10" fill="none"
+      stroke="rgba(245,205,138,0.7)" stroke-width="1.3"/>
+    <circle cx="12" cy="10" r="6" fill="#f5cd8a"/>
+    <circle cx="108" cy="10" r="6" fill="#e8a75c"/>
+    <circle cx="60" cy="37" r="2.2" fill="rgba(253,243,227,0.8)"/>
+  </svg>`;
+}
+
+let sortMode = 'new', filtMode = 'all', wordFilt = null;
+
+// today = local date or UTC date (archives store ISO dates)
+const TODAY_KEYS = (() => {
+  const d = new Date();
+  const local = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') +
+    '-' + String(d.getDate()).padStart(2, '0');
+  return new Set([local, d.toISOString().slice(0, 10)]);
+})();
+function isToday(s) { return TODAY_KEYS.has(s.date); }
+
+function canonKey(s) {
+  const m = metaOf(s);
+  if (!m || !m.wall) return 99999;
+  return Math.min(...m.wall.map(w => bookIdx(w[0]) * 200 + w[1]));
+}
+
+function strandList() {
+  let arr = STR.map((s, i) => ({ s, i }));
+  arr = arr.filter(({ s }) => !isToday(s));   // today's beads shown above, on their own
+  arr = arr.filter(({ s }) => {
+    const m = metaOf(s);
+    if (wordFilt) {
+      const words = (m && m.words) || [];
+      const anch = (s.anchors || []).join(' ').toLowerCase();
+      if (!words.includes(wordFilt) && !anch.includes(wordFilt)) return false;
+    }
+    if (filtMode === 'cross')  return m && m.wall && isOT(m.wall[0][0]) !== isOT(m.wall[1][0]);
+    if (filtMode === 'deep')   return m && m.votes >= 0 && m.votes < 10;
+    if (filtMode === 'debate') return m && (m.debate || m.votes < 0);
+    if (filtMode === 'reason') return !!s.reason;
+    return true;
+  });
+  if (sortMode === 'new')   arr = arr.slice().reverse();
+  if (sortMode === 'canon') arr.sort((x, y) => canonKey(x.s) - canonKey(y.s));
+  if (sortMode === 'depth') arr.sort((x, y) =>
+    ((metaOf(x.s) || { votes: 0 }).votes) - ((metaOf(y.s) || { votes: 0 }).votes));
+  return arr;
+}
+
+function strandCard(s, i, td) {
+  return `<div class="strand${td ? ' td' : ''}" data-i="${i}">
+      ${strandSVG()}
+      <div class="sl">${s.label || ''}</div>
+      <div class="sr">${s.refs[0]}<br>${s.refs[1]}</div>
+    </div>`;
+}
+
+function renderToday() {
+  const list = STR.map((s, i) => ({ s, i })).filter(({ s }) => isToday(s));
+  if (!list.length) return;
+  $('todaySec').style.display = 'block';
+  $('todayStrands').innerHTML =
+    list.slice().reverse().map(({ s, i }) => strandCard(s, i, true)).join('');
+}
+
+function renderStrands() {
+  const box = $('strands');
+  if (!STR.length) {
+    box.innerHTML = `<div class="empty">A oficina ainda está vazia.<br>Enfie sua primeira conta e pendure-a aqui.</div>`;
+    return;
+  }
+  const list = strandList();
+  box.innerHTML = list.length ? list.map(({ s, i }) => strandCard(s, i, false)).join('')
+    : `<div class="empty">Nada nesta vista ainda.</div>`;
+}
+
+$('viewBar').addEventListener('click', (e) => {
+  const b = e.target.closest('button');
+  if (!b) return;
+  if (b.dataset.sort) {
+    sortMode = b.dataset.sort;
+    document.querySelectorAll('#viewBar [data-sort]').forEach(x => x.classList.toggle('on', x === b));
+  }
+  if (b.dataset.filt) {
+    filtMode = b.dataset.filt;
+    wordFilt = null;
+    document.querySelectorAll('#viewBar [data-filt]').forEach(x => x.classList.toggle('on', x === b));
+    renderDrawers();
+  }
+  renderStrands();
+});
+
+function versesReady() { return window.__VP && window.__VP === window.__VP_TOTAL; }
+
+// rebuild the short passages from the refs, highlighting the anchors marked back then
+function passageHTML(s, i) {
+  const m = metaOf(s);
+  if (!m || !m.wall || !versesReady()) return '';
+  const [book, ch] = m.wall[i];
+  const ref = s.refs[i] || '';
+  const nums = [];
+  const prim = ref.match(new RegExp(ch + ':(\\d+)(?:-(\\d+))?'));
+  if (prim) {
+    const v1 = +prim[1], v2 = +(prim[2] || prim[1]);
+    for (let v = v1; v <= v2 && v <= v1 + 5; v++) nums.push(v);
+  }
+  if (!nums.length) return '';
+  let text = '';
+  for (const v of nums) {
+    const t = window.VERSES[`${book}${ch}:${v}`];
+    if (t) text += t + ' ';
+  }
+  if (!text) return '';
+  let html = text.replace(/&/g, '&amp;').replace(/</g, '&lt;');
+  // the two passages word things differently: side B prefers its own saved words
+  const cands = (i === 1 && s.anchorsB && s.anchorsB.length)
+    ? s.anchorsB.slice() : (s.anchors || []).slice();
+  if (m && m.words) cands.push(...m.words);
+  for (const a of cands.filter(Boolean)) {
+    const clean = a.replace(/[,.;:!?"'“”]/g, '').trim();
+    const target = html.includes(a) ? a : (clean && html.includes(clean) ? clean : null);
+    if (target) html = html.split(target).join(`<b class="hl">${target}</b>`);
+  }
+  return `<div class="dPass"><div class="pref">${ref}</div>${html}</div>`;
+}
+
+// ---- TSK verse-level threads (v2 index: tsk/<OSIS>.js, per-book, loaded on demand) ----
+const TSKQ = {};
+function tskFetch(file) {
+  if (!TSKQ[file]) TSKQ[file] = new Promise(res => {
+    const sc = document.createElement('script');
+    sc.src = '../data/tsk/' + file + '.js';
+    sc.onload = () => res(); sc.onerror = () => res();
+    document.head.appendChild(sc);
+  });
+  return TSKQ[file];
+}
+function tskThreads(chA, chB) {
+  const bA = (chA.match(/^([1-3]?[A-Za-z]+)/) || [])[1];
+  const bB = (chB.match(/^([1-3]?[A-Za-z]+)/) || [])[1];
+  if (!bA || !bB) return Promise.resolve([]);
+  return Promise.all([tskFetch(bA), tskFetch(bB)]).then(() => {
+    const out = [], seen = new Set();
+    const scan = (book, fromCh, toCh, flip) => {
+      const data = (window.TSKX || {})[book];
+      if (!data) return;
+      for (const row of data.split(';')) {
+        const p = row.split('|');
+        if (p.length < 3) continue;
+        const fv = p[0].split(':');
+        if (book + fv[0] !== fromCh) continue;
+        const mm = p[1].match(/^([1-3]?[A-Za-z]+\d+):(.+)$/);
+        if (!mm || mm[1] !== toCh) continue;
+        const va = flip ? mm[2] : fv[1], vb = flip ? fv[1] : mm[2];
+        if (seen.has(va + '|' + vb)) continue;
+        seen.add(va + '|' + vb);
+        out.push([va, vb, +p[2]]);
+      }
+    };
+    scan(bA, chA, chB, false);
+    scan(bB, chB, chA, true);
+    out.sort((x, y) => y[2] - x[2]);
+    return out;
+  });
+}
+// verse text of one thread (up to 4 verses, expands in place)
+function passRaw(ref) {
+  const m = ref.match(/^([^0-9]+|[1-3]?[A-Za-z]+)(\d+):(\d+)(?:-(\d+))?$/);
+  if (!m || !window.VERSES) return [];
+  const v1 = +m[3], v2 = Math.min(+(m[4] || m[3]), v1 + 3);
+  const out = [];
+  for (let v = v1; v <= v2; v++) {
+    const t = window.VERSES[m[1] + m[2] + ':' + v];
+    if (t === undefined) break;
+    out.push([v, t]);
+  }
+  return out;
+}
+// shared words of the two passages (stopwords dropped, accent-safe), for highlighting
+const TSTOP = new Set(('the and of unto that shall for his not with they them thee thou thy but was were are is be am will have hath had this there their then when out all which from upon into said saith him her she who whom what your our my me you it he we do did done no nor so an or if by up let may might more also because before after against among over even every been according wherefore therefore behold things thing came come cometh went let us ye yea o que los las del y en un una por con no se su para como mas pero este esta ella ellos ellas nos vos lo la el os de do da dos das um uma nao seu sua ao aos ele eles nem ja como muito').split(' '));
+function commonBits(a, b) {
+  const rx = /[a-záéíóúüñàâãêôõç']+/gi;
+  const wa = new Set((a.match(rx) || []).map(w => w.toLowerCase()));
+  const out = [];
+  for (const w of (b.match(rx) || []).map(x => x.toLowerCase()))
+    if (w.length > 2 && wa.has(w) && !TSTOP.has(w) && out.indexOf(w) < 0) out.push(w);
+  return out.slice(0, 8);
+}
+function hlBits(t, words) {
+  let h = t;
+  for (const w of words)
+    h = h.replace(new RegExp("(^|[^a-záéíóúüñàâãêôõç'])(" + w + ")(?=[^a-záéíóúüñàâãêôõç']|$)", 'gi'),
+      '$1<i class="thl">$2</i>');
+  return h;
+}
+function threadPassage(ref, words) {
+  return passRaw(ref).map(([v, t], i) =>
+    (i ? ' ' : '') + '<span style="opacity:0.5;font-size:0.85em">' + v + '</span> ' + hlBits(t, words || [])
+  ).join('');
+}
+const esc = (t) => String(t).replace(/[&<>"']/g,
+  (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+// notes from others (P2b): open to everyone, collapsed behind a link (keeps the think-first friction)
+// UGC always escaped
+function notesHTML(rows) {
+  const canAmen = window.cloudSignedIn && window.cloudSignedIn();
+  return rows.map((r) => '<div class="dnote">“' + esc(r.reason) + '”' +
+    '<span>— ' + esc(r.display_name || 'anônimo') + ' · ' + esc(r.strung_on || '') +
+    ' <button class="amen' + (r.mine ? ' on' : '') + '" data-sid="' + (+r.sid) + '"' +
+    ' data-on="' + (r.mine ? 1 : 0) + '"' + (canAmen ? '' : ' disabled') +
+    ' title="Isso me edificou">♡ <b>' + (+r.amen_count || 0) + '</b></button></span></div>').join('');
+}
+function bindAmens(box) {
+  box.querySelectorAll('.amen').forEach((b) => b.addEventListener('click', () => {
+    const on = b.dataset.on === '1';
+    if (!window.cloudAmen) return;
+    window.cloudAmen(+b.dataset.sid, !on).then((ok) => {
+      if (!ok) return;
+      b.dataset.on = on ? '0' : '1';
+      b.classList.toggle('on', !on);
+      b.querySelector('b').textContent = Math.max(0, +b.querySelector('b').textContent + (on ? -1 : 1));
+    });
+  }));
+}
+function renderDetailNotes(str) {
+  const box = document.getElementById('dNotes');
+  box.innerHTML = '';
+  const m = metaOf(str);
+  const pk = m && m.wall ? m.wall.map((w) => w[0] + w[1]).sort().join('|') : null;
+  if (!pk || !window.cloudNotes) return;
+  window.cloudNotes(pk).then((rows) => {
+    if (!rows || !rows.length || curDetail !== str) return;
+    box.innerHTML = '<button class="noteLink">✎ ' + rows.length + ' deixaram uma nota nesta conta · veja</button>';
+    box.querySelector('.noteLink').addEventListener('click', () => {
+      box.innerHTML = '<div class="hint" style="margin-top:0">Notas de outros · ordenadas por “isso me edificou”</div>' +
+        notesHTML(rows);
+      bindAmens(box);
+    });
+  });
+}
+
+function renderDetailTsk(str) {
+  const box = document.getElementById('dTsk');
+  box.innerHTML = '';
+  const m = metaOf(str);
+  const w = m && m.wall;
+  if (!w || w.length < 2) return;
+  const A = w[0][0] + w[0][1], B = w[1][0] + w[1][1];
+  tskThreads(A, B).then(list => {
+    if (!list.length || curDetail !== str) return;
+    box.innerHTML =
+      `<div class="hint" style="margin-top:0">Fios nesta conta · ${list.length} no TSK</div>` +
+      list.slice(0, 12).map(r =>
+        `<button class="tline" data-a="${A}:${r[0]}" data-b="${B}:${r[1]}">` +
+        `<span>${chLabel(A)}:${r[0]} ↔ ${chLabel(B)}:${r[1]}</span><span style="opacity:0.6">${r[2]}</span></button>`).join('') +
+      (list.length > 12 ? `<div class="hint">… e mais ${list.length - 12}</div>` : '');
+    box.querySelectorAll('.tline').forEach(el => el.addEventListener('click', () => {
+      const nx = el.nextElementSibling;
+      if (nx && nx.classList.contains('tpass')) { nx.remove(); return; }
+      box.querySelectorAll('.tpass').forEach(x => x.remove());
+      const d = document.createElement('div');
+      d.className = 'tpass';
+      const lbl = (r) => r.replace(/^([1-3]?[A-Za-z]+)(\d+):/, '$1 $2:');
+      if (versesReady()) {
+        const ta = passRaw(el.dataset.a).map(x => x[1]).join(' ');
+        const tb = passRaw(el.dataset.b).map(x => x[1]).join(' ');
+        const bits = commonBits(ta, tb);
+        d.innerHTML =
+          '<div><b>' + lbl(el.dataset.a) + '</b>　' + threadPassage(el.dataset.a, bits) + '</div>' +
+          '<div style="margin-top:0.4em"><b>' + lbl(el.dataset.b) + '</b>　' + threadPassage(el.dataset.b, bits) + '</div>';
+      } else {
+        d.innerHTML = 'Os versículos ainda carregam… toque de novo em instantes';
+      }
+      el.after(d);
+    }));
+  });
+}
+
+let curDetail = null;
+function onStrandClick(e) {
+  const el = e.target.closest('.strand');
+  if (!el) return;
+  const s = STR[Number(el.dataset.i)];
+  curDetail = s;
+  $('dEditWrap').style.display = 'none';
+  $('dSaveBtn').style.display = 'none';
+  $('dEditBtn').style.display = 'inline-block';
+  const m = metaOf(s);
+  const refLink = (ref) => {
+    const q = (ref || '').match(/^([^0-9]+|[1-3]?[A-Za-z]+)(\d+)/);
+    return q ? '<a class="dref" href="dushu.html?bk=' + encodeURIComponent(q[1]) +
+      '&ch=' + q[2] + '">' + ref + '</a>' : ref;
+  };
+  $('dRefs').innerHTML = refLink(s.refs[0]) + '<br>⸻<br>' + refLink(s.refs[1]);
+  $('dMeta').textContent = `${s.date} · ${s.label || ''}` +
+    (m ? ` · ${m.votes} votos (${depthOf(m.votes)})` : '');
+  const pa = passageHTML(s, 0), pb = passageHTML(s, 1);
+  $('dPasses').innerHTML = (pa || pb) ? pa + pb
+    : (versesReady() ? ''
+       : '<div class="dPass" style="opacity:0.5">Os versículos ainda estão carregando… abra de novo em instantes</div>');
+  $('dAnchors').innerHTML = (pa || pb) ? '' : (s.anchors || []).filter(Boolean)
+    .map(a => `<i>${a.replace(/[,.;:!?"']/g, '').trim()}</i>`).join('');
+  $('dReason').textContent = s.reason ? `“${s.reason}”` : '(sem nota nesta conta)';
+  renderDetailTsk(s);
+  renderDetailNotes(s);
+  $('detail').style.display = 'block';
+}
+$('strands').addEventListener('click', onStrandClick);
+$('todayStrands').addEventListener('click', onStrandClick);
+$('dClose').addEventListener('click', () => $('detail').style.display = 'none');
+
+$('dEditBtn').addEventListener('click', () => {
+  if (!curDetail) return;
+  $('dEditTa').value = curDetail.reason || '';
+  $('dEditWrap').style.display = 'block';
+  $('dEditBtn').style.display = 'none';
+  $('dSaveBtn').style.display = 'inline-block';
+  $('dEditTa').focus();
+});
+$('dSaveBtn').addEventListener('click', () => {
+  if (!curDetail) return;
+  curDetail.reason = $('dEditTa').value.trim();
+  localStorage.setItem('chuanzhu_strings', JSON.stringify([...STR].reverse()));
+  $('dReason').textContent = curDetail.reason ? `“${curDetail.reason}”` : '(sem nota nesta conta)';
+  $('dEditWrap').style.display = 'none';
+  $('dSaveBtn').style.display = 'none';
+  $('dEditBtn').style.display = 'inline-block';
+  renderStrands();
+});
+renderToday();
+renderStrands();
+
+// ================================================================ bead calendar (a record, not a streak)
+
+const DAYS = (() => {
+  let d = {};
+  try { d = JSON.parse(localStorage.getItem('chuanzhu_days')) || {}; } catch (e) {}
+  for (const s of STR) if (s.date && !d[s.date]) d[s.date] = 1;
+  return d;
+})();
+function localDay(d) {
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') +
+    '-' + String(d.getDate()).padStart(2, '0');
+}
+const MONTHS = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho',
+  'Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+let calY, calM;
+function renderCal() {
+  $('calTitle').textContent = `${MONTHS[calM]} ${calY}`;
+  const today = localDay(new Date());
+  const firstDow = new Date(calY, calM, 1).getDay();
+  const n = new Date(calY, calM + 1, 0).getDate();
+  let html = ['D','S','T','Q','Q','S','S']
+    .map(w => `<div class="calCell wd">${w}</div>`).join('');
+  for (let i = 0; i < firstDow; i++) html += '<div class="calCell"></div>';
+  for (let day = 1; day <= n; day++) {
+    const key = localDay(new Date(calY, calM, day));
+    const has = DAYS[key];
+    html += `<div class="calCell${has ? ' has' : ''}${key === today ? ' today' : ''}">${day}` +
+      (has ? '<span class="dot"></span>' : '') + '</div>';
+  }
+  $('calGrid').innerHTML = html;
+}
+{
+  const now = new Date();
+  calY = now.getFullYear(); calM = now.getMonth();
+  $('calPrev').addEventListener('click', () => {
+    calM--; if (calM < 0) { calM = 11; calY--; } renderCal(); });
+  $('calNext').addEventListener('click', () => {
+    calM++; if (calM > 11) { calM = 0; calY++; } renderCal(); });
+  renderCal();
+}
+
+// ================================================================ chains & drawers & seals
+
+const CHAINS = computeChains();
+if (CHAINS.length) {
+  $('chainsSec').style.display = 'block';
+  $('chains').innerHTML = CHAINS.map(c => `
+    <div class="chain">
+      <div class="cbeads">${c.path.map(chLabel).join(' ⸺ ')}</div>
+      <div class="cname">${c.path.length}-bead ${c.closed ? 'garland' : 'chain'} · joined by ${c.edges} strands</div>
+    </div>`).join('');
+}
+
+function renderDrawers() {
+  const count = {};
+  for (const s of STR) {
+    const m = metaOf(s);
+    if (m) for (const w of (m.words || [])) count[w] = (count[w] || 0) + 1;
+  }
+  const words = Object.entries(count).sort((a, b) => b[1] - a[1]);
+  if (!words.length) { $('drawersSec').style.display = 'none'; return; }
+  $('drawersSec').style.display = 'block';
+  $('drawers').innerHTML = words.map(([w, n]) =>
+    `<div class="drawer ${wordFilt === w ? 'on' : ''}" data-w="${w}">${w}<b>${n}</b></div>`).join('');
+}
+$('drawers').addEventListener('click', (e) => {
+  const d = e.target.closest('.drawer');
+  if (!d) return;
+  wordFilt = wordFilt === d.dataset.w ? null : d.dataset.w;
+  renderDrawers();
+  renderStrands();
+});
+renderDrawers();
+
+{
+  const seals = [];
+  if (STR.length >= 1) seals.push('Primeira Conta');
+  if (STR.some(s => { const m = metaOf(s); return m && m.wall && isOT(m.wall[0][0]) !== isOT(m.wall[1][0]); }))
+    seals.push('Entre os Testamentos');
+  if (STR.some(s => { const m = metaOf(s); return m && m.votes >= 0 && m.votes < 2; }))
+    seals.push('Pérola do Profundo');
+  if (STR.some(s => { const m = metaOf(s); return m && (m.debate || m.votes < 0); }))
+    seals.push('Julgado por Você');
+  if (CHAINS.some(c => c.path.length >= 3)) seals.push('Corrente de Três');
+  if (CHAINS.some(c => c.closed)) seals.push('Guirlanda');
+  $('seals').innerHTML = seals.map(t => `<span class="seal">${t}</span>`).join('');
+}
+
+// grain
+{
+  const g = document.createElement('canvas');
+  g.id = 'grainCanvas';
+  const el = $('grain'), gs = 140;
+  el.width = gs; el.height = gs;
+  el.style.width = '100vw'; el.style.height = '100vh';
+  el.style.imageRendering = 'pixelated';
+  const ctx = el.getContext('2d');
+  const re = () => {
+    const img = ctx.createImageData(gs, gs);
+    for (let i = 0; i < img.data.length; i += 4) {
+      const v = Math.random() * 255;
+      img.data[i] = img.data[i+1] = img.data[i+2] = v; img.data[i+3] = 255;
+    }
+    ctx.putImageData(img, 0, 0);
+  };
+  re(); setInterval(re, 150);
+}
+</script>
+<script src="account.js" defer></script>
+<script>if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(function () {});</script>
+</body>
+</html>

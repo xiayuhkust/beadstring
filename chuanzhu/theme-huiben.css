@@ -1,0 +1,206 @@
+/* 串珠 · 绘本皮肤（旷野的白昼）
+   儿童绘本式的沙漠白天：淡蓝天、奶油沙丘、贴纸按钮
+   仅覆盖颜色/圆角/阴影，不动布局与逻辑；html[data-theme="huiben"] 时生效 */
+
+[data-theme="huiben"] body {
+  background: linear-gradient(180deg, #a8ddec 0%, #dcecdf 34%, #f6ecd4 62%, #f2d49a 100%);
+  color: #4a3421;
+  font-family: "Yuanti SC", "幼圆", "YouYuan", "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+[data-theme="huiben"] .dune.d1 { background: #eccf96; opacity: 1; }
+[data-theme="huiben"] .dune.d2 { background: #e0bd7f; }
+[data-theme="huiben"] #vignette {
+  background: radial-gradient(ellipse at 50% 40%, transparent 62%, rgba(180,130,60,0.18) 100%);
+}
+[data-theme="huiben"] #grain { opacity: 0.025; }
+[data-theme="huiben"] h1 { text-shadow: 0 2px 0 rgba(255,255,255,0.6); color: #4a3421; }
+[data-theme="huiben"] .sub, [data-theme="huiben"] .cap { opacity: 0.75; }
+[data-theme="huiben"] .hint { color: #6b4f33; opacity: 0.85; }
+[data-theme="huiben"] .monk { color: #6b4f33; opacity: 0.9 !important; }
+[data-theme="huiben"] #todayMark { color: #c17c1f !important; }
+
+/* ---- 按钮：贴纸质感（粗描边 + 底沿阴影） ---- */
+[data-theme="huiben"] button, [data-theme="huiben"] .abtn {
+  background: #fffdf4; color: #5a3d22;
+  border: 2px solid rgba(90,61,34,0.75); border-radius: 1.6em;
+  box-shadow: 0 3px 0 rgba(90,61,34,0.22);
+}
+[data-theme="huiben"] button:hover, [data-theme="huiben"] .abtn:hover {
+  background: #fff6df;
+}
+[data-theme="huiben"] button.gold {
+  background: linear-gradient(180deg, #ffd166, #f0a92e);
+  color: #4a2c08; border: 2px solid rgba(122,77,20,0.55);
+  box-shadow: 0 4px 0 rgba(122,77,20,0.35);
+}
+[data-theme="huiben"] button.gold:hover {
+  background: linear-gradient(180deg, #ffd97e, #f4b241);
+}
+[data-theme="huiben"] button.goldline {
+  border-color: #dd9b30; color: #a2621c; background: #ffefc9;
+}
+[data-theme="huiben"] button.ghost {
+  border-color: rgba(90,61,34,0.5); background: rgba(255,253,244,0.7);
+}
+
+/* ---- 串珠页 ---- */
+[data-theme="huiben"] .beadCard {
+  background: #fffdf4; border: 2px solid #e5c99b; box-shadow: 0 4px 0 rgba(180,130,60,0.18);
+}
+[data-theme="huiben"] .verses { color: #43301d; }
+[data-theme="huiben"] .beadRef { opacity: 0.8; }
+[data-theme="huiben"] .beadRef i { color: #c17c1f; }
+[data-theme="huiben"] #breathWhy, [data-theme="huiben"] #bt { color: #5a3d22; opacity: 0.85; }
+[data-theme="huiben"] #bc {
+  border-color: rgba(90,61,34,0.7);
+  box-shadow: 0 0 40px rgba(240,169,46,0.35), inset 0 0 26px rgba(240,169,46,0.25);
+}
+[data-theme="huiben"] .seg:hover { border-bottom-color: rgba(90,61,34,0.5); }
+[data-theme="huiben"] .seg.sel { background: rgba(240,169,46,0.3); }
+[data-theme="huiben"] .seg.match { background: rgba(240,169,46,0.4); color: #7a4a10;
+  text-shadow: none; }
+[data-theme="huiben"] .seg.reveal { outline-color: rgba(193,124,31,0.6); }
+[data-theme="huiben"] #findFb { color: #5a3d22; }
+[data-theme="huiben"] #findFb b { color: #c17c1f; }
+[data-theme="huiben"] .thread { stroke: rgba(224,141,30,0.9); }
+[data-theme="huiben"] #reason {
+  background: #fffdf4; color: #43301d; border: 2px solid #e5c99b;
+}
+[data-theme="huiben"] #reason:focus { border-color: #dd9b30; }
+[data-theme="huiben"] #knotAnchors { color: #6b4f33; opacity: 0.95; }
+[data-theme="huiben"] #knotAnchors i { color: #a2621c; border-color: rgba(193,124,31,0.5);
+  background: #ffefc9; }
+[data-theme="huiben"] #doneReason, [data-theme="huiben"] #doneRefs { color: #5a3d22; }
+[data-theme="huiben"] #doneSrc { color: #6b4f33; opacity: 0.7; }
+[data-theme="huiben"] .note { background: #fffdf4; border: 2px solid #e5c99b; }
+[data-theme="huiben"] .note .nreason { color: #5a3d22; }
+[data-theme="huiben"] .note .nrefs { color: #c17c1f; }
+
+/* ---- 读经页 ---- */
+[data-theme="huiben"] header { background: none !important; }
+[data-theme="huiben"] #chrome { background: rgba(246,236,212,0.97);
+  border-bottom: 2px solid #dd9b30; }
+[data-theme="huiben"] #chTitle .tpill { background: #fffdf4; color: #4a3421;
+  border: 2px solid rgba(193,124,31,0.65); box-shadow: 0 2px 0 rgba(90,61,34,0.18); }
+[data-theme="huiben"] #chTitle:hover .tpill { background: #fff6df; border-color: #dd9b30; }
+[data-theme="huiben"] .cbtn {
+  background: #fffdf4; color: #5a3d22;
+  border: 2px solid rgba(90,61,34,0.6); box-shadow: 0 2px 0 rgba(90,61,34,0.18);
+}
+[data-theme="huiben"] .cbtn:hover { background: #fff6df; }
+[data-theme="huiben"] .cbtn.on { border-color: #dd9b30; color: #a2621c; background: #ffefc9; }
+[data-theme="huiben"] #text { color: #3d2c1a; }
+[data-theme="huiben"] .vn { color: #b0742a; opacity: 0.75; }
+[data-theme="huiben"] body.beadMode .verse.hasBead:hover { background: rgba(240,169,46,0.14); }
+[data-theme="huiben"] body.beadMode .verse.hasBead .vn { color: #c17c1f; }
+[data-theme="huiben"] .bmark { color: #c17c1f; }
+[data-theme="huiben"] .verse.flash { animation-name: vflash-h; }
+@keyframes vflash-h { 0%,55% { background: rgba(240,169,46,0.25); } 100% { background: none; } }
+[data-theme="huiben"] .pbtn {
+  background: #fffdf4; color: #5a3d22;
+  border: 2px solid rgba(90,61,34,0.6); box-shadow: 0 3px 0 rgba(90,61,34,0.2);
+}
+[data-theme="huiben"] #picker { background: rgba(246,236,212,0.98); }
+[data-theme="huiben"] #picker h3 { color: #5a3d22; opacity: 0.9; }
+[data-theme="huiben"] .pk { background: #fffdf4; border: 2px solid #e5c99b; color: #4a3421; }
+[data-theme="huiben"] .pk:hover { border-color: #dd9b30; }
+[data-theme="huiben"] .pk.cur { border-color: #dd9b30; color: #a2621c; background: #ffefc9; }
+[data-theme="huiben"] #sheetMask { background: rgba(120,85,40,0.3); }
+[data-theme="huiben"] #sheet { background: #fdf6e6; border: 2px solid #dd9b30; border-bottom: none; }
+[data-theme="huiben"] #sheetTitle { color: #5a3d22; opacity: 0.9; }
+[data-theme="huiben"] .bead { background: #fffdf4; border: 2px solid #e5c99b; color: #4a3421; }
+[data-theme="huiben"] .bead:hover { border-color: #dd9b30; }
+[data-theme="huiben"] .bead .bref { color: #c17c1f; }
+[data-theme="huiben"] .bead .bmeta { opacity: 0.7; }
+[data-theme="huiben"] .bead .strung { color: #4f9a58; }
+[data-theme="huiben"] #loadNote { color: #5a3d22; }
+[data-theme="huiben"] .foot a {
+  color: #a2621c; border: 2px solid rgba(193,124,31,0.6);
+  background: #fffdf4; box-shadow: 0 3px 0 rgba(122,77,20,0.2);
+}
+
+/* ---- 工坊页 ---- */
+[data-theme="huiben"] .strand, [data-theme="huiben"] .chain {
+  background: #fffdf4; border: 2px solid #e5c99b; }
+[data-theme="huiben"] .strand:hover { border-color: #dd9b30; }
+[data-theme="huiben"] .strand .sl, [data-theme="huiben"] .chain .cbeads { color: #c17c1f; }
+[data-theme="huiben"] .strand .sr { opacity: 0.7; }
+[data-theme="huiben"] .seal { color: #a2621c; border-color: rgba(193,124,31,0.5);
+  background: #ffefc9; }
+[data-theme="huiben"] .drawer { background: #fffdf4; border: 2px solid #e5c99b; color: #4a3421; }
+[data-theme="huiben"] .drawer.on { border-color: #dd9b30; color: #a2621c; }
+[data-theme="huiben"] .drawer b { color: #c17c1f; }
+[data-theme="huiben"] #viewBar button {
+  background: #fffdf4; color: #5a3d22; border: 2px solid rgba(90,61,34,0.55); }
+[data-theme="huiben"] #viewBar button.on { border-color: #dd9b30; color: #a2621c;
+  background: #ffefc9; }
+[data-theme="huiben"] #detail {
+  background: #fdf6e6; border: 2px solid #dd9b30; box-shadow: 0 10px 40px rgba(120,85,40,0.35); }
+[data-theme="huiben"] #dRefs { color: #c17c1f; }
+[data-theme="huiben"] .dPass { color: #43301d; opacity: 1; }
+[data-theme="huiben"] .dPass .pref { color: #c17c1f; }
+[data-theme="huiben"] .dPass .hl { color: #7a4a10; background: rgba(240,169,46,0.35);
+  text-shadow: none; }
+[data-theme="huiben"] #dAnchors i { color: #a2621c; border-color: rgba(193,124,31,0.5);
+  background: #ffefc9; }
+[data-theme="huiben"] #dClose, [data-theme="huiben"] #dEditBtn, [data-theme="huiben"] #dSaveBtn {
+  background: #fffdf4; color: #5a3d22; border: 2px solid rgba(90,61,34,0.6); }
+[data-theme="huiben"] #dEditTa { background: #fffdf4 !important; color: #43301d !important;
+  border-color: #e5c99b !important; }
+[data-theme="huiben"] .calbtn { background: #fffdf4; color: #5a3d22;
+  border: 2px solid rgba(90,61,34,0.6); }
+[data-theme="huiben"] .calCell.has { color: #a2621c; background: #ffefc9;
+  border-color: rgba(221,155,48,0.7); }
+[data-theme="huiben"] .calCell.today { outline-color: rgba(90,61,34,0.5); }
+[data-theme="huiben"] .calCell .dot { background: #e08d1e; box-shadow: 0 0 6px rgba(224,141,30,0.7); }
+[data-theme="huiben"] .empty { opacity: 0.6; }
+[data-theme="huiben"] #ropeCap, [data-theme="huiben"] #skyCap { opacity: 0.75; }
+
+/* ---- 书架页 ---- */
+[data-theme="huiben"] .bk, [data-theme="huiben"] .chp {
+  background: #fffdf4; border: 2px solid #e5c99b; }
+[data-theme="huiben"] .bk:hover, [data-theme="huiben"] .chp:hover { border-color: #dd9b30; }
+[data-theme="huiben"] .bk.nt .bn { color: #a2621c; }
+[data-theme="huiben"] #crumb span { color: #a2621c; border-bottom-color: rgba(193,124,31,0.5); }
+
+/* ---- 角落图标 ---- */
+[data-theme="huiben"] .iconBtn { background: rgba(255,253,244,0.9); color: #5a3d22;
+  border: 2px solid rgba(90,61,34,0.5); box-shadow: 0 2px 0 rgba(90,61,34,0.18); }
+[data-theme="huiben"] .iconBtn:hover { background: #fff6df; }
+[data-theme="huiben"] #langMenu { background: #fdf6e6; border: 2px solid #dd9b30;
+  box-shadow: 0 8px 30px rgba(120,85,40,0.3); }
+[data-theme="huiben"] #langMenu .lang { color: #4a3421; }
+[data-theme="huiben"] #langMenu .lang:hover { background: rgba(240,169,46,0.16); }
+
+/* ---- 云端账户 ---- */
+[data-theme="huiben"] #acctIco.in { border-color: #dd9b30; }
+[data-theme="huiben"] #acctIco.in::after { background: #dd9b30;
+  box-shadow: 0 0 5px rgba(221,155,48,0.8); }
+[data-theme="huiben"] #acctPanel { background: #fdf6e6; border: 2px solid #dd9b30;
+  box-shadow: 0 8px 30px rgba(120,85,40,0.3); color: #4a3421; }
+[data-theme="huiben"] #acctPanel input, [data-theme="huiben"] #cloudSec input {
+  background: #fffdf4 !important; border-color: rgba(193,124,31,0.6) !important; color: #4a3421 !important; }
+[data-theme="huiben"] #acctPanel button, [data-theme="huiben"] #cloudSec .chain button {
+  border-color: rgba(193,124,31,0.7) !important; background: rgba(240,169,46,0.14) !important;
+  color: #4a3421 !important; }
+[data-theme="huiben"] #acctPanel [style*="color:#f5cd8a"],
+[data-theme="huiben"] #cloudSec [style*="color:#f5cd8a"] { color: #a2621c !important; }
+[data-theme="huiben"] #cloudBar { color: #4a3421; background: rgba(240,169,46,0.12);
+  border-color: rgba(193,124,31,0.6); }
+[data-theme="huiben"] #pubCk { accent-color: #dd9b30; }
+
+/* ---- TSK 线索列表 ---- */
+[data-theme="huiben"] .tline { background: rgba(255,253,244,0.75);
+  border-color: rgba(193,124,31,0.45); color: #4a3421; }
+[data-theme="huiben"] .tline:hover { border-color: #dd9b30; background: #fffdf4; }
+[data-theme="huiben"] .tpass { border-left-color: rgba(193,124,31,0.5); color: #43301d; }
+[data-theme="huiben"] .tpass b { color: #c17c1f; }
+[data-theme="huiben"] .dnote { background: #fffdf4; border-color: #e5c99b; color: #43301d; }
+[data-theme="huiben"] .tpass .thl { color: #7a4a10; background: rgba(240,169,46,0.35); }
+[data-theme="huiben"] .dref { border-bottom-color: rgba(193,124,31,0.6); }
+[data-theme="huiben"] .noteLink { background: none; border: none; box-shadow: none;
+  color: #a2621c; text-decoration-color: rgba(193,124,31,0.6); }
+[data-theme="huiben"] .amen { background: none; border: 1px solid rgba(193,124,31,0.5);
+  box-shadow: none; border-radius: 2em; color: #6b4f33; }
+[data-theme="huiben"] .amen.on { border-color: #dd9b30; color: #a2621c;
+  background: rgba(240,169,46,0.16); }

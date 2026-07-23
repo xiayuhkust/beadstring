@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#1c1722">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<title>工坊 · 串珠</title>
+<script>try{var _t=localStorage.getItem("chuanzhu_theme");if(_t!=="night"){document.documentElement.dataset.theme="huiben";var _m=document.querySelector('meta[name="theme-color"]');if(_m)_m.content="#a8ddec";}}catch(e){}</script>
+<link rel="stylesheet" href="tokens.css">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { min-height: 100%; }
+  body {
+    font-family: Georgia, "Times New Roman", "Songti SC", "宋体", serif;
+    color: #fdf3e3; -webkit-font-smoothing: antialiased;
+    user-select: none; -webkit-user-select: none;
+    background: linear-gradient(180deg, #1d1824 0%, #322734 45%, #6b4a3c 78%, #b07d55 100%);
+    background-attachment: fixed;
+    overflow-x: hidden;
+  }
+  .dune { position: fixed; left: -10vw; width: 120vw; border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+          pointer-events: none; z-index: 0; }
+  .dune.d1 { bottom: -12vh; height: 24vh; background: #281e18; opacity: 0.9; }
+  .dune.d2 { bottom: -16vh; height: 20vh; left: 20vw; width: 110vw; background: #1e1611; }
+  #grain { position: fixed; inset: 0; pointer-events: none; opacity: 0.06;
+           mix-blend-mode: overlay; z-index: 40; }
+  #vignette { position: fixed; inset: 0; pointer-events: none; z-index: 30;
+    background: radial-gradient(ellipse at 50% 38%, transparent 52%, rgba(12,7,5,0.55) 100%); }
+
+  main { position: relative; z-index: 10; max-width: 720px; margin: 0 auto; padding: 0 20px 12vh; }
+
+  header { text-align: center; padding: 7vh 0 2vh; }
+  h1 { font-size: clamp(1.9rem, 6vw, 2.6rem); font-weight: normal;
+       letter-spacing: 0.5em; margin-left: 0.5em;
+       text-shadow: 0 2px 30px rgba(60,30,10,0.7); }
+  #tabs { margin-top: 2em; }
+  #tabs button {
+    background: rgba(253,243,227,0.07); color: #fdf3e3;
+    border: 1px solid rgba(253,243,227,0.5);
+    border-radius: 2em; padding: 0.5em 1.6em; font-family: inherit; cursor: pointer;
+    font-size: 0.85rem; letter-spacing: 0.3em; text-indent: 0.3em; margin: 0 0.4em;
+    transition: all 0.4s;
+  }
+  #tabs button.on { border-color: rgba(245,205,138,0.9); color: #f5cd8a;
+    background: rgba(245,205,138,0.12); }
+
+  h2 { font-size: 0.85rem; font-weight: normal; letter-spacing: 0.5em;
+       opacity: 0.55; margin: 3em 0 1.2em; text-align: center; }
+  .cap { text-align: center; font-size: 0.75rem; letter-spacing: 0.2em;
+         opacity: 0.5; margin-top: 0.8em; line-height: 2.2; }
+
+  /* 祈祷绳 */
+  #ropeWrap { margin-top: 1.5em; }
+  #rope { width: 100%; height: 46px; display: block; }
+
+  /* 印记 */
+  #seals { display: flex; justify-content: center; flex-wrap: wrap; gap: 0.8em; margin-top: 1.6em; }
+  .seal { font-size: 0.7rem; letter-spacing: 0.15em; color: #f5cd8a;
+    border: 1px solid rgba(245,205,138,0.4); border-radius: 2em;
+    padding: 0.35em 1em; opacity: 0.85; }
+
+  /* 挂串墙 */
+  #strands, #todayStrands { display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; }
+  .strand.td { border-color: rgba(245,205,138,0.7) !important;
+    background: rgba(245,205,138,0.09) !important;
+    box-shadow: 0 0 18px rgba(245,205,138,0.12); }
+  .strand {
+    background: rgba(18,12,9,0.55); border: 1px solid rgba(253,243,227,0.14);
+    border-radius: 12px; padding: 0.9em 0.9em 0.8em; cursor: pointer;
+    transition: border-color 0.3s;
+  }
+  .strand:hover { border-color: rgba(245,205,138,0.5); }
+  .strand svg { width: 100%; height: 52px; display: block; }
+  .strand .sl { font-size: 0.72rem; letter-spacing: 0.1em; color: #f5cd8a;
+    opacity: 0.9; margin-top: 0.5em; text-align: center; }
+  .strand .sr { font-size: 0.66rem; letter-spacing: 0.08em; opacity: 0.5;
+    margin-top: 0.35em; text-align: center; line-height: 1.8; }
+  .empty { grid-column: 1 / -1; text-align: center; opacity: 0.45;
+    font-size: 0.8rem; letter-spacing: 0.2em; padding: 2em 0; line-height: 2.4; }
+
+  /* 详情浮层 */
+  #detail {
+    position: fixed; left: 50%; bottom: 4vh; transform: translateX(-50%);
+    z-index: 55; display: none; width: min(88vw, 440px);
+    max-height: 76vh; overflow-y: auto;
+    background: rgba(22,15,11,0.96); border: 1px solid rgba(245,205,138,0.35);
+    border-radius: 12px; padding: 1.3em 1.5em;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+  }
+  #dRefs { font-size: 0.85rem; letter-spacing: 0.15em; color: #f5cd8a; line-height: 2; }
+  #dMeta { font-size: 0.68rem; letter-spacing: 0.15em; opacity: 0.45; margin-top: 0.5em; }
+  .dPass { text-align: left; margin-top: 0.9em; font-size: 0.85rem;
+    line-height: 2.1; letter-spacing: 0.06em; opacity: 0.88; }
+  .dPass .pref { font-size: 0.66rem; letter-spacing: 0.2em; color: #f5cd8a;
+    opacity: 0.7; margin-bottom: 0.3em; }
+  .dPass .hl { font-weight: normal; color: #f5cd8a;
+    background: rgba(245,205,138,0.16); border-radius: 3px; padding: 0 2px;
+    text-shadow: 0 0 10px rgba(245,205,138,0.4); }
+  #dAnchors { margin-top: 0.8em; }
+  #dAnchors i { font-style: normal; font-size: 0.72rem; color: #f5cd8a;
+    border: 1px solid rgba(245,205,138,0.35); border-radius: 1.2em;
+    padding: 0.15em 0.7em; margin: 0 0.25em 0.4em 0; display: inline-block; }
+  #dReason { margin-top: 0.8em; font-size: 0.82rem; line-height: 2; opacity: 0.75; font-style: italic; }
+  #dClose, #dEditBtn, #dSaveBtn { margin-top: 1em; background: rgba(253,243,227,0.12);
+    border: 1px solid rgba(253,243,227,0.75);
+    color: #fdf3e3; border-radius: 2em; padding: 0.4em 1.3em; font-family: inherit;
+    font-size: 0.76rem; letter-spacing: 0.2em; cursor: pointer; }
+
+  /* 链 */
+  #dTsk { margin-top: 1em; }
+  .tpass { margin: 0.3em 0 0.5em; padding: 0.7em 1em; border-left: 2px solid rgba(245,205,138,0.4);
+    font-size: 0.82rem; line-height: 2; opacity: 0.92; text-align: left; }
+  .tpass b { color: #f5cd8a; font-weight: normal; }
+  .tpass .thl { font-style: normal; color: #ffe9c4; background: rgba(245,205,138,0.28);
+    border-radius: 3px; padding: 0 1px; }
+  .dref { color: inherit; text-decoration: none;
+    border-bottom: 1px dashed rgba(245,205,138,0.5); }
+  #dNotes { margin-top: 1em; }
+  .dnote { background: rgba(20,13,9,0.3); border: 1px solid rgba(245,205,138,0.25);
+    border-radius: 10px; padding: 0.7em 1em; margin-top: 0.5em; font-size: 0.82rem;
+    line-height: 2; text-align: left; }
+  .dnote span { display: block; font-size: 0.72rem; opacity: 0.55; margin-top: 0.2em; }
+  .noteLink { background: none; border: none; cursor: pointer; font-family: inherit;
+    color: #f5cd8a; opacity: 0.8; font-size: 0.78rem; letter-spacing: 0.05em;
+    text-decoration: underline dashed rgba(245,205,138,0.5); padding: 0.2em 0; }
+  .noteLink:hover { opacity: 1; }
+  .amen { background: none; border: 1px solid rgba(245,205,138,0.35); border-radius: 2em;
+    color: inherit; font-family: inherit; font-size: 0.72rem; cursor: pointer;
+    padding: 0.1em 0.7em; margin-left: 0.5em; opacity: 0.8; }
+  .amen b { font-weight: normal; }
+  .amen.on { border-color: rgba(245,205,138,0.9); color: #f5cd8a; background: rgba(245,205,138,0.12); }
+  .amen[disabled] { cursor: default; opacity: 0.5; }
+  .tline { display: flex; justify-content: space-between; gap: 1em; width: 100%;
+    box-sizing: border-box; background: rgba(20,13,9,0.3); border: 1px solid rgba(245,205,138,0.25);
+    color: inherit; font-family: inherit; border-radius: 10px; padding: 0.5em 1em;
+    margin: 0.45em 0 0; cursor: pointer; font-size: 0.78rem; letter-spacing: 0.05em; }
+  .tline:hover { border-color: rgba(245,205,138,0.6); }
+  .chain {
+    background: rgba(18,12,9,0.55); border: 1px solid rgba(245,205,138,0.3);
+    border-radius: 12px; padding: 1em 1.2em; margin-bottom: 12px;
+    text-align: center;
+  }
+  .chain .cbeads { font-size: 0.9rem; letter-spacing: 0.12em; color: #f5cd8a; line-height: 2; }
+  .chain .cname { font-size: 0.68rem; letter-spacing: 0.25em; opacity: 0.5; margin-top: 0.4em; }
+
+  /* 词条抽屉 */
+  #drawers { display: flex; justify-content: center; flex-wrap: wrap; gap: 0.7em; }
+  .drawer { font-size: 0.8rem; letter-spacing: 0.15em; cursor: pointer;
+    border: 1px solid rgba(253,243,227,0.25); border-radius: 10px;
+    padding: 0.5em 1em; background: rgba(18,12,9,0.5); transition: border-color 0.3s; }
+  .drawer:hover { border-color: rgba(245,205,138,0.5); }
+  .drawer.on { border-color: rgba(245,205,138,0.8); color: #f5cd8a; }
+  .drawer b { font-weight: normal; color: #f5cd8a; margin-left: 0.5em; font-size: 0.7rem; }
+
+  /* 串珠历 */
+  #calHead { display: flex; justify-content: center; align-items: center; gap: 1.2em;
+    font-size: 0.85rem; letter-spacing: 0.2em; }
+  .calbtn { background: rgba(253,243,227,0.1); border: 1px solid rgba(253,243,227,0.6);
+    color: #fdf3e3; border-radius: 50%; width: 2em; height: 2em; cursor: pointer;
+    font-family: inherit; font-size: 0.85rem; line-height: 1; }
+  #calGrid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px;
+    max-width: 380px; margin: 1em auto 0; }
+  .calCell { text-align: center; padding: 0.4em 0 0.35em; font-size: 0.7rem;
+    opacity: 0.5; border-radius: 8px; }
+  .calCell.wd { opacity: 0.4; font-size: 0.6rem; }
+  .calCell.has { opacity: 1; color: #f5cd8a; background: rgba(245,205,138,0.1);
+    border: 1px solid rgba(245,205,138,0.45); }
+  .calCell.today { outline: 1px dashed rgba(253,243,227,0.5); }
+  .calCell .dot { display: block; width: 5px; height: 5px; border-radius: 50%;
+    background: #f5cd8a; margin: 0.3em auto 0; box-shadow: 0 0 6px rgba(245,205,138,0.8); }
+
+  /* 视图与分类栏 */
+  #viewBar { display: flex; justify-content: center; flex-wrap: wrap; gap: 0.45em;
+    margin-bottom: 1.2em; align-items: center; }
+  #viewBar button { background: rgba(253,243,227,0.12); color: #fdf3e3;
+    border: 1px solid rgba(253,243,227,0.7); border-radius: 2em;
+    padding: 0.32em 0.9em; font-family: inherit; font-size: 0.72rem;
+    letter-spacing: 0.12em; cursor: pointer; }
+  #viewBar button.on { border-color: rgba(245,205,138,0.9); color: #f5cd8a;
+    background: rgba(245,205,138,0.12); }
+  #viewBar .vsep { width: 1px; height: 1.1em; background: rgba(253,243,227,0.25); margin: 0 0.5em; }
+
+  /* 星图 */
+  #vSky { display: none; }
+  #sky { width: min(92vw, 620px); display: block; margin: 1em auto 0; }
+
+  .foot { text-align: center; margin-top: 4em; }
+  .foot a { display: inline-block; color: #f5cd8a; text-decoration: none;
+    font-size: 0.82rem; margin: 0.3em 0.35em; letter-spacing: 0.25em; text-indent: 0.25em;
+    border: 1px solid rgba(245,205,138,0.7); border-radius: 2em;
+    padding: 0.55em 1.3em; background: rgba(245,205,138,0.1); }
+</style>
+<link rel="stylesheet" href="theme-huiben.css">
+</head>
+<body>
+  <a id="homeBtn" class="iconBtn" href="index.html" aria-label="回到主页"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 11.2 12 4l8.5 7.2"/><path d="M5.8 10v10h12.4V10"/></svg></a>
+  <div class="dune d2"></div>
+  <div class="dune d1"></div>
+  <canvas id="grain"></canvas>
+  <div id="vignette"></div>
+
+  <main>
+    <header>
+      <h1 id="pageTitle">工 坊</h1>
+      <!-- 星图暂隐藏（意义不明，待重新设计后再开） -->
+      <div id="tabs" style="display:none">
+        <button id="tabW" class="on">工 坊</button>
+        <button id="tabS">星 图</button>
+      </div>
+    </header>
+
+    <section id="vWorkshop">
+      <div id="ropeWrap">
+        <svg id="rope"></svg>
+        <p class="cap" id="ropeCap"></p>
+      </div>
+      <div id="seals"></div>
+
+      <div id="todaySec" style="display:none">
+        <h2>今 日 的 手 工</h2>
+        <div id="todayStrands"></div>
+      </div>
+
+      <h2>串 珠 历</h2>
+      <div id="calWrap">
+        <div id="calHead">
+          <button id="calPrev" class="calbtn">‹</button>
+          <span id="calTitle"></span>
+          <button id="calNext" class="calbtn">›</button>
+        </div>
+        <div id="calGrid"></div>
+        <p class="cap">旷野的脚印——走过的日子都在，空白的日子不欠</p>
+      </div>
+
+      <h2>挂 串 墙</h2>
+      <div id="viewBar">
+        <button data-sort="new" class="on">最 新</button>
+        <button data-sort="canon">正 典 序</button>
+        <button data-sort="depth">深 度</button>
+        <span class="vsep"></span>
+        <button data-filt="all" class="on">全 部</button>
+        <button data-filt="cross">跨 约</button>
+        <button data-filt="deep">深 水 以 下</button>
+        <button data-filt="debate">争 议</button>
+        <button data-filt="reason">写 了 理 由</button>
+      </div>
+      <div id="strands"></div>
+
+      <div id="chainsSec" style="display:none">
+        <h2>链 · 串 与 串 相 接</h2>
+        <div id="chains"></div>
+      </div>
+
+      <div id="drawersSec" style="display:none">
+        <h2>词 条 抽 屉</h2>
+        <div id="drawers"></div>
+        <p class="cap">你在亲手编自己的宝库</p>
+      </div>
+    </section>
+
+    <section id="vSky">
+      <svg id="sky" viewBox="0 0 700 700"></svg>
+      <p class="cap" id="skyCap"></p>
+    </section>
+
+
+    <p class="foot">
+      <a href="index.html">去 串 一 串</a>
+      <a href="dushu.html">读 经</a>
+    </p>
+  </main>
+
+  <div id="detail">
+    <div id="dRefs"></div>
+    <div id="dMeta"></div>
+    <div id="dPasses"></div>
+    <div id="dAnchors"></div>
+    <div id="dReason"></div>
+    <div id="dTsk"></div>
+    <div id="dNotes"></div>
+    <div id="dEditWrap" style="display:none; margin-top:0.8em;">
+      <textarea id="dEditTa" maxlength="100" style="width:100%; min-height:4.5em;
+        background:rgba(253,243,227,0.06); color:#fdf3e3; resize:vertical;
+        border:1px solid rgba(245,205,138,0.4); border-radius:10px;
+        padding:0.8em 1em; font-family:inherit; font-size:0.85rem;
+        line-height:2; letter-spacing:0.06em;"
+        placeholder="改写你的理由……（≤100 字）"></textarea>
+    </div>
+    <button id="dClose">关 闭</button>
+    <button id="dEditBtn" style="margin-left:0.5em">改 理 由</button>
+    <button id="dSaveBtn" style="display:none; margin-left:0.5em;
+      border-color:rgba(245,205,138,0.7); color:#f5cd8a;">保 存</button>
+  </div>
+
+<script>
+// ================================================================ 元数据
+
+// 66 卷（缩写 / 章数 / 约）
+const BOOKS = [
+  ['创',50],['出',40],['利',27],['民',36],['申',34],['书',24],['士',21],['得',4],
+  ['撒上',31],['撒下',24],['王上',22],['王下',25],['代上',29],['代下',36],['拉',10],
+  ['尼',13],['斯',10],['伯',42],['诗',150],['箴',31],['传',12],['歌',8],['赛',66],
+  ['耶',52],['哀',5],['结',48],['但',12],['何',14],['珥',3],['摩',9],['俄',1],
+  ['拿',4],['弥',7],['鸿',3],['哈',3],['番',3],['该',2],['亚',14],['玛',4],
+  ['太',28],['可',16],['路',24],['约',21],['徒',28],['罗',16],['林前',16],['林后',13],
+  ['加',6],['弗',6],['腓',4],['西',4],['帖前',5],['帖后',3],['提前',6],['提后',4],
+  ['多',3],['门',1],['来',13],['雅',5],['彼前',5],['彼后',3],['约壹',5],['约贰',1],
+  ['约叁',1],['犹',1],['启',22],
+];
+const OT_COUNT = 39;
+const TOTAL_CH = 1189;
+
+// 珠对元数据（pairId → 墙位/票数/词条），含已退役珠对以兼容旧存档
+const META = {
+  'jonah43-1kgs194':  { wall: [['拿',4],['王上',19]], votes: 12,  words: ['求死','树下'] },
+  'jonah42-amos76':   { wall: [['拿',4],['摩',7]],   votes: 3,   words: ['后悔','灾'] },
+  'hos214-jer22':     { wall: [['何',2],['耶',2]],   votes: 2,   words: ['旷野'] },
+  'hos214-john1232':  { wall: [['何',2],['约',12]],  votes: 1,   words: ['吸引'] },
+  'gen13-john1143':   { wall: [['创',1],['约',11]],  votes: -5,  words: ['话语'], debate: true },
+  'jonah42-exod346':  { wall: [['拿',4],['出',34]],  votes: 30,  words: ['恩典','怜悯'] },
+  'ps231-john1011':   { wall: [['诗',23],['约',10]], votes: 375, words: ['牧者'] },
+  'gen11-john11':     { wall: [['创',1],['约',1]],   votes: 370, words: ['起初'] },
+};
+
+function depthOf(votes) {
+  if (votes < 0)    return '争议珠';
+  if (votes >= 100) return '浅滩珠';
+  if (votes >= 10)  return '近岸珠';
+  if (votes >= 2)   return '深水珠';
+  return '深海珠';
+}
+function bookIdx(abbr) { return BOOKS.findIndex(b => b[0] === abbr); }
+function isOT(abbr) { const i = bookIdx(abbr); return i >= 0 && i < OT_COUNT; }
+// 动态珠（书架/掣签串成的）把元数据存在串里；老演示珠查 META
+function metaOf(s) { return META[s.pairId] || s.meta || null; }
+
+// ================================================================ 读取存档
+
+let STR = [];
+try { STR = JSON.parse(localStorage.getItem('chuanzhu_strings')) || []; } catch (e) {}
+STR = STR.slice().reverse();   // 时间正序
+
+const $ = (id) => document.getElementById(id);
+
+// ================================================================ 祈祷绳
+
+{
+  const n = STR.length;
+  const svg = $('rope');
+  const W = Math.min(document.body.clientWidth - 40, 680), H = 46;
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  let html = `<path d="M 0 ${H/2} Q ${W/2} ${H/2 + 8} ${W} ${H/2}"
+    fill="none" stroke="rgba(253,243,227,0.35)" stroke-width="2"/>`;
+  const show = Math.min(n, 60);
+  for (let i = 0; i < show; i++) {
+    const t = (i + 1) / (show + 1);
+    const x = t * W;
+    const y = H/2 + 8 * 2 * t * (1 - t) * 2;   // 沿二次曲线近似
+    html += `<circle cx="${x}" cy="${y}" r="4.2" fill="none"
+      stroke="rgba(245,205,138,0.85)" stroke-width="2"/>`;
+  }
+  svg.innerHTML = html;
+  $('ropeCap').textContent = n
+    ? `祈祷绳 · ${n} 个结${n > 60 ? '（显示最近 60 个）' : ''} · 这根绳不会断，只会变长`
+    : '祈祷绳还没有结——串成第一串，就打下第一个结';
+}
+
+// ================================================================ 链检测（串共享珠即相接）
+
+function chapterKey(w) { return w[0] + w[1]; }
+function computeChains() {
+  const edges = [];
+  for (const s of STR) {
+    const m = metaOf(s);
+    if (m && m.wall) edges.push({ a: chapterKey(m.wall[0]), b: chapterKey(m.wall[1]), s });
+  }
+  // 并查集分组
+  const parent = {};
+  const find = (x) => { parent[x] = parent[x] ?? x; return parent[x] === x ? x : (parent[x] = find(parent[x])); };
+  const union = (x, y) => { parent[find(x)] = find(y); };
+  for (const e of edges) union(e.a, e.b);
+  const groups = {};
+  for (const e of edges) {
+    const r = find(e.a);
+    (groups[r] = groups[r] || []).push(e);
+  }
+  return Object.values(groups).filter(g => g.length >= 2).map(g => {
+    // 从度为 1 的端点走出一条珠序
+    const deg = {}, adj = {};
+    for (const e of g) {
+      deg[e.a] = (deg[e.a] || 0) + 1; deg[e.b] = (deg[e.b] || 0) + 1;
+      (adj[e.a] = adj[e.a] || []).push(e.b);
+      (adj[e.b] = adj[e.b] || []).push(e.a);
+    }
+    const nodes = Object.keys(deg);
+    let start = nodes.find(k => deg[k] === 1) || nodes[0];
+    const path = [start], seen = new Set([start]);
+    let cur = start;
+    while (true) {
+      const next = (adj[cur] || []).find(k => !seen.has(k));
+      if (!next) break;
+      path.push(next); seen.add(next); cur = next;
+    }
+    const closed = nodes.every(k => deg[k] === 2) && g.length === nodes.length;
+    return { path, edges: g.length, closed };
+  });
+}
+
+// ================================================================ 挂串墙
+
+function strandSVG() {
+  return `<svg viewBox="0 0 120 52">
+    <path d="M 12 10 Q 60 46 108 10" fill="none"
+      stroke="rgba(245,205,138,0.7)" stroke-width="1.3"/>
+    <circle cx="12" cy="10" r="6" fill="#f5cd8a"/>
+    <circle cx="108" cy="10" r="6" fill="#e8a75c"/>
+    <circle cx="60" cy="37" r="2.2" fill="rgba(253,243,227,0.8)"/>
+  </svg>`;
+}
+
+let sortMode = 'new', filtMode = 'all', wordFilt = null;
+
+// 今日（本地日期与 UTC 日期都算——存档用的是 ISO 日期）
+const TODAY_KEYS = (() => {
+  const d = new Date();
+  const local = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') +
+    '-' + String(d.getDate()).padStart(2, '0');
+  return new Set([local, d.toISOString().slice(0, 10)]);
+})();
+function isToday(s) { return TODAY_KEYS.has(s.date); }
+
+function canonKey(s) {
+  const m = metaOf(s);
+  if (!m || !m.wall) return 99999;
+  return Math.min(...m.wall.map(w => bookIdx(w[0]) * 200 + w[1]));
+}
+
+function strandList() {
+  let arr = STR.map((s, i) => ({ s, i }));
+  arr = arr.filter(({ s }) => !isToday(s));   // 今日的珠在上方独立展示
+  arr = arr.filter(({ s }) => {
+    const m = metaOf(s);
+    if (wordFilt) {
+      const words = (m && m.words) || [];
+      const anch = (s.anchors || []).join('');
+      if (!words.includes(wordFilt) && !anch.includes(wordFilt)) return false;
+    }
+    if (filtMode === 'cross')  return m && m.wall && isOT(m.wall[0][0]) !== isOT(m.wall[1][0]);
+    if (filtMode === 'deep')   return m && m.votes >= 0 && m.votes < 10;
+    if (filtMode === 'debate') return m && (m.debate || m.votes < 0);
+    if (filtMode === 'reason') return !!s.reason;
+    return true;
+  });
+  if (sortMode === 'new')   arr = arr.slice().reverse();
+  if (sortMode === 'canon') arr.sort((x, y) => canonKey(x.s) - canonKey(y.s));
+  if (sortMode === 'depth') arr.sort((x, y) =>
+    ((metaOf(x.s) || { votes: 0 }).votes) - ((metaOf(y.s) || { votes: 0 }).votes));
+  return arr;
+}
+
+function strandCard(s, i, td) {
+  return `<div class="strand${td ? ' td' : ''}" data-i="${i}">
+      ${strandSVG()}
+      <div class="sl">${s.label || ''}</div>
+      <div class="sr">${s.refs[0]}<br>${s.refs[1]}</div>
+    </div>`;
+}
+
+function renderToday() {
+  const list = STR.map((s, i) => ({ s, i })).filter(({ s }) => isToday(s));
+  if (!list.length) return;
+  $('todaySec').style.display = 'block';
+  $('todayStrands').innerHTML =
+    list.slice().reverse().map(({ s, i }) => strandCard(s, i, true)).join('');
+}
+
+function renderStrands() {
+  const box = $('strands');
+  if (!STR.length) {
+    box.innerHTML = `<div class="empty">工坊还空着。<br>去串第一串，把它挂在这里。</div>`;
+    return;
+  }
+  const list = strandList();
+  box.innerHTML = list.length ? list.map(({ s, i }) => strandCard(s, i, false)).join('')
+    : `<div class="empty">这个视角下，还没有串。</div>`;
+}
+
+$('viewBar').addEventListener('click', (e) => {
+  const b = e.target.closest('button');
+  if (!b) return;
+  if (b.dataset.sort) {
+    sortMode = b.dataset.sort;
+    document.querySelectorAll('#viewBar [data-sort]').forEach(x => x.classList.toggle('on', x === b));
+  }
+  if (b.dataset.filt) {
+    filtMode = b.dataset.filt;
+    wordFilt = null;
+    document.querySelectorAll('#viewBar [data-filt]').forEach(x => x.classList.toggle('on', x === b));
+    renderDrawers();
+  }
+  renderStrands();
+});
+
+// 经文分片就绪检测（原文回看用）
+function versesReady() { return window.__VP && window.__VP === window.__VP_TOTAL; }
+
+// 由串的出处重建原文短段，并把当时划中的锚高亮
+function passageHTML(s, i) {
+  const m = metaOf(s);
+  if (!m || !m.wall || !versesReady()) return '';
+  const [book, ch] = m.wall[i];
+  const ref = s.refs[i] || '';
+  const nums = [];
+  const prim = ref.match(new RegExp(ch + ':(\\d+)(?:-(\\d+))?'));
+  if (prim) {
+    const v1 = +prim[1], v2 = +(prim[2] || prim[1]);
+    for (let v = v1; v <= v2 && v <= v1 + 5; v++) nums.push(v);
+  }
+  for (const mm of ref.matchAll(/[,、]\s*(\d+)(?![:\d])/g)) nums.push(+mm[1]);
+  if (!nums.length) return '';
+  let text = '';
+  for (const v of nums) {
+    const t = window.VERSES[`${book}${ch}:${v}`];
+    if (t) text += t;
+  }
+  if (!text) return '';
+  let html = text.replace(/&/g, '&amp;').replace(/</g, '&lt;');
+  // 两侧措辞不同：B 段优先用 B 侧存的词，共词锚（两侧必有）兜底
+  const cands = (i === 1 && s.anchorsB && s.anchorsB.length)
+    ? s.anchorsB.slice() : (s.anchors || []).slice();
+  if (m && m.words) cands.push(...m.words);
+  for (const a of cands.filter(Boolean)) {
+    const clean = a.replace(/[，。；：、“”「」！？]/g, '');
+    const target = html.includes(a) ? a : (clean && html.includes(clean) ? clean : null);
+    if (target) html = html.split(target).join(`<b class="hl">${target}</b>`);
+  }
+  return `<div class="dPass"><div class="pref">${ref}</div>${html}</div>`;
+}
+
+// ---- TSK 节级线索（v2 索引：tsk/<OSIS>.js 按卷按需加载，语言无关，zh 经 zhmap 渲染）----
+const TSKQ = {};
+function tskFetch(file) {
+  if (!TSKQ[file]) TSKQ[file] = new Promise(res => {
+    const sc = document.createElement('script');
+    sc.src = '../data/tsk/' + file + '.js';
+    sc.onload = () => res(); sc.onerror = () => res();
+    document.head.appendChild(sc);
+  });
+  return TSKQ[file];
+}
+function tskThreads(chA, chB) {
+  const bA = (chA.match(/^([1-3]?[A-Za-z]+)/) || [])[1];
+  const bB = (chB.match(/^([1-3]?[A-Za-z]+)/) || [])[1];
+  if (!bA || !bB) return Promise.resolve([]);
+  return Promise.all([tskFetch(bA), tskFetch(bB)]).then(() => {
+    const out = [], seen = new Set();
+    const scan = (book, fromCh, toCh, flip) => {
+      const data = (window.TSKX || {})[book];
+      if (!data) return;
+      for (const row of data.split(';')) {
+        const p = row.split('|');
+        if (p.length < 3) continue;
+        const fv = p[0].split(':');
+        if (book + fv[0] !== fromCh) continue;
+        const mm = p[1].match(/^([1-3]?[A-Za-z]+\d+):(.+)$/);
+        if (!mm || mm[1] !== toCh) continue;
+        const va = flip ? mm[2] : fv[1], vb = flip ? fv[1] : mm[2];
+        if (seen.has(va + '|' + vb)) continue;
+        seen.add(va + '|' + vb);
+        out.push([va, vb, +p[2]]);
+      }
+    };
+    scan(bA, chA, chB, false);
+    scan(bB, chB, chA, true);
+    out.sort((x, y) => y[2] - x[2]);
+    return out;
+  });
+}
+let ZH2O = null;
+function zhmapReady() {
+  return tskFetch('zhmap').then(() => {
+    if (!ZH2O && window.TSK_ZH) {
+      ZH2O = {};
+      for (const k in window.TSK_ZH) ZH2O[window.TSK_ZH[k]] = k;
+    }
+  });
+}
+// 一根线的经文正文（最多 4 节，就地展开不跳转）
+function passRaw(ref) {
+  const m = ref.match(/^([^0-9]+|[1-3]?[A-Za-z]+)(\d+):(\d+)(?:-(\d+))?$/);
+  if (!m || !window.VERSES) return [];
+  const v1 = +m[3], v2 = Math.min(+(m[4] || m[3]), v1 + 3);
+  const out = [];
+  for (let v = v1; v <= v2; v++) {
+    const t = window.VERSES[m[1] + m[2] + ':' + v];
+    if (t === undefined) break;
+    out.push([v, t]);
+  }
+  return out;
+}
+// 两段经文的共词（2-4 字共现片段，停用字过滤），供展开时高亮
+function commonBits(a, b) {
+  const STOP = '的了是在有和就不人都一这那我你他她它们与也又将把被于以之其为所而能可如若使凡并或说道对向从来去到过着么吗呢啊里中上下要因此故然虽必曾已经没有';
+  const found = [];
+  for (let len = 4; len >= 2; len--) {
+    for (let i = 0; i + len <= a.length; i++) {
+      const g = a.substr(i, len);
+      if (/[，。；：「」『』“”‘’（）！？、\s0-9a-zA-Z]/.test(g)) continue;
+      if (len === 2 && (STOP.includes(g[0]) || STOP.includes(g[1]))) continue;
+      if (!b.includes(g)) continue;
+      // 与已选片段有 2 字以上重叠的滑窗碎片不再收（丰盛的慈/盛的慈爱只留一个）
+      let overlap = false;
+      for (const f of found) {
+        for (let k = 0; k + 2 <= g.length && !overlap; k++) if (f.includes(g.substr(k, 2))) overlap = true;
+        if (overlap) break;
+      }
+      if (overlap) continue;
+      found.push(g);
+      if (found.length >= 6) return found;
+    }
+  }
+  return found;
+}
+function hlBits(t, bits) {
+  let h = t;
+  for (const g of bits) h = h.split(g).join('<i class="thl">' + g + '</i>');
+  return h;
+}
+function threadPassage(ref, bits) {
+  return passRaw(ref).map(([v, t], i) =>
+    (i ? ' ' : '') + '<span style="opacity:0.5;font-size:0.85em">' + v + '</span> ' + hlBits(t, bits || [])
+  ).join('');
+}
+const esc = (t) => String(t).replace(/[&<>"']/g,
+  (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+// 众人的注脚（P2b）：任何人可看，默认折叠成一行（保留"先自己想"的摩擦）；按造就数排序
+// UGC 一律转义
+function notesHTML(rows) {
+  const canAmen = window.cloudSignedIn && window.cloudSignedIn();
+  return rows.map((r) => '<div class="dnote">「' + esc(r.reason) + '」' +
+    '<span>—— ' + esc(r.display_name || '无名') + ' · ' + esc(r.strung_on || '') +
+    ' <button class="amen' + (r.mine ? ' on' : '') + '" data-sid="' + (+r.sid) + '"' +
+    ' data-on="' + (r.mine ? 1 : 0) + '"' + (canAmen ? '' : ' disabled') +
+    ' title="造就了我">♡ <b>' + (+r.amen_count || 0) + '</b></button></span></div>').join('');
+}
+function bindAmens(box) {
+  box.querySelectorAll('.amen').forEach((b) => b.addEventListener('click', () => {
+    const on = b.dataset.on === '1';
+    if (!window.cloudAmen) return;
+    window.cloudAmen(+b.dataset.sid, !on).then((ok) => {
+      if (!ok) return;
+      b.dataset.on = on ? '0' : '1';
+      b.classList.toggle('on', !on);
+      b.querySelector('b').textContent = Math.max(0, +b.querySelector('b').textContent + (on ? -1 : 1));
+    });
+  }));
+}
+function renderDetailNotes(str) {
+  const box = document.getElementById('dNotes');
+  box.innerHTML = '';
+  const m = metaOf(str);
+  const pk = m && m.wall ? m.wall.map((w) => w[0] + w[1]).sort().join('|') : null;
+  if (!pk || !window.cloudNotes) return;
+  window.cloudNotes(pk).then((rows) => {
+    if (!rows || !rows.length || curDetail !== str) return;
+    box.innerHTML = '<button class="noteLink">✎ ' + rows.length + ' 人在这颗珠上留过话 · 看看</button>';
+    box.querySelector('.noteLink').addEventListener('click', () => {
+      box.innerHTML = '<div class="hint" style="margin-top:0">众人的注脚 · 按「造就了我」排序</div>' +
+        notesHTML(rows);
+      bindAmens(box);
+    });
+  });
+}
+
+function renderDetailTsk(str) {
+  const box = document.getElementById('dTsk');
+  box.innerHTML = '';
+  const m = metaOf(str);
+  const w = m && m.wall;
+  if (!w || w.length < 2) return;
+  const zhA = w[0][0] + w[0][1], zhB = w[1][0] + w[1][1];
+  zhmapReady().then(() => {
+    if (!ZH2O) return;
+    const conv = (z) => { const q = z.match(/^([^0-9]+)(\d+)$/); return q && ZH2O[q[1]] ? ZH2O[q[1]] + q[2] : null; };
+    const A = conv(zhA), B = conv(zhB);
+    if (!A || !B) return;
+    tskThreads(A, B).then(list => {
+      if (!list.length || curDetail !== str) return;   // 详情已切换则弃
+      box.innerHTML =
+        `<div class="hint" style="margin-top:0">这颗珠上的线 · TSK 共 ${list.length} 条</div>` +
+        list.slice(0, 12).map(r =>
+          `<button class="tline" data-a="${zhA}:${r[0]}" data-b="${zhB}:${r[1]}">` +
+          `<span>${zhA}:${r[0]} ↔ ${zhB}:${r[1]}</span><span style="opacity:0.6">${r[2]}</span></button>`).join('') +
+        (list.length > 12 ? `<div class="hint">……还有 ${list.length - 12} 条</div>` : '');
+      box.querySelectorAll('.tline').forEach(el => el.addEventListener('click', () => {
+        const nx = el.nextElementSibling;
+        if (nx && nx.classList.contains('tpass')) { nx.remove(); return; }
+        box.querySelectorAll('.tpass').forEach(x => x.remove());
+        const d = document.createElement('div');
+        d.className = 'tpass';
+        if (versesReady()) {
+          const ta = passRaw(el.dataset.a).map(x => x[1]).join('');
+          const tb = passRaw(el.dataset.b).map(x => x[1]).join('');
+          const bits = commonBits(ta, tb);
+          d.innerHTML =
+            '<div><b>' + el.dataset.a + '</b>　' + threadPassage(el.dataset.a, bits) + '</div>' +
+            '<div style="margin-top:0.4em"><b>' + el.dataset.b + '</b>　' + threadPassage(el.dataset.b, bits) + '</div>';
+        } else {
+          d.innerHTML = '经文加载中……稍后再点';
+        }
+        el.after(d);
+      }));
+    });
+  });
+}
+
+let curDetail = null;
+function onStrandClick(e) {
+  const el = e.target.closest('.strand');
+  if (!el) return;
+  const s = STR[Number(el.dataset.i)];
+  curDetail = s;
+  $('dEditWrap').style.display = 'none';
+  $('dSaveBtn').style.display = 'none';
+  $('dEditBtn').style.display = 'inline-block';
+  const m = metaOf(s);
+  const refLink = (ref) => {
+    const q = (ref || '').match(/^([^0-9]+|[1-3]?[A-Za-z]+)(\d+)/);
+    return q ? '<a class="dref" href="dushu.html?bk=' + encodeURIComponent(q[1]) +
+      '&ch=' + q[2] + '">' + ref + '</a>' : ref;
+  };
+  $('dRefs').innerHTML = refLink(s.refs[0]) + '<br>⸻<br>' + refLink(s.refs[1]);
+  $('dMeta').textContent = `${s.date} · ${s.label || ''}` +
+    (m ? ` · ${m.votes} 票（${depthOf(m.votes)}）` : '');
+  const pa = passageHTML(s, 0), pb = passageHTML(s, 1);
+  $('dPasses').innerHTML = (pa || pb) ? pa + pb
+    : (versesReady() ? ''
+       : '<div class="dPass" style="opacity:0.5">经文加载中……稍后再点开即可回看原文</div>');
+  // 原文可见时锚已在文中高亮，无需重复词签；仅在无原文时展示词签
+  $('dAnchors').innerHTML = (pa || pb) ? '' : (s.anchors || []).filter(Boolean)
+    .map(a => `<i>${a.replace(/[，。；：「」“”！？、]/g, '')}</i>`).join('');
+  $('dReason').textContent = s.reason ? `「${s.reason}」` : '（这一串没有写理由）';
+  renderDetailTsk(s);
+  renderDetailNotes(s);
+  $('detail').style.display = 'block';
+}
+$('strands').addEventListener('click', onStrandClick);
+$('todayStrands').addEventListener('click', onStrandClick);
+$('dClose').addEventListener('click', () => $('detail').style.display = 'none');
+
+// 改理由：就地编辑，存回本机
+$('dEditBtn').addEventListener('click', () => {
+  if (!curDetail) return;
+  $('dEditTa').value = curDetail.reason || '';
+  $('dEditWrap').style.display = 'block';
+  $('dEditBtn').style.display = 'none';
+  $('dSaveBtn').style.display = 'inline-block';
+  $('dEditTa').focus();
+});
+$('dSaveBtn').addEventListener('click', () => {
+  if (!curDetail) return;
+  curDetail.reason = $('dEditTa').value.trim();
+  localStorage.setItem('chuanzhu_strings', JSON.stringify([...STR].reverse()));
+  $('dReason').textContent = curDetail.reason ? `「${curDetail.reason}」` : '（这一串没有写理由）';
+  $('dEditWrap').style.display = 'none';
+  $('dSaveBtn').style.display = 'none';
+  $('dEditBtn').style.display = 'inline-block';
+  renderStrands();
+});
+renderToday();
+renderStrands();
+
+// ================================================================ 串珠历（记录，不是连击）
+
+const DAYS = (() => {
+  let d = {};
+  try { d = JSON.parse(localStorage.getItem('chuanzhu_days')) || {}; } catch (e) {}
+  // 旧存档回填：串上带的日期至少记一珠
+  for (const s of STR) if (s.date && !d[s.date]) d[s.date] = 1;
+  return d;
+})();
+function localDay(d) {
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') +
+    '-' + String(d.getDate()).padStart(2, '0');
+}
+let calY, calM;
+function renderCal() {
+  $('calTitle').textContent = `${calY} 年 ${calM + 1} 月`;
+  const today = localDay(new Date());
+  const firstDow = new Date(calY, calM, 1).getDay();
+  const n = new Date(calY, calM + 1, 0).getDate();
+  let html = ['日','一','二','三','四','五','六']
+    .map(w => `<div class="calCell wd">${w}</div>`).join('');
+  for (let i = 0; i < firstDow; i++) html += '<div class="calCell"></div>';
+  for (let day = 1; day <= n; day++) {
+    const key = localDay(new Date(calY, calM, day));
+    const has = DAYS[key];
+    html += `<div class="calCell${has ? ' has' : ''}${key === today ? ' today' : ''}">${day}` +
+      (has ? '<span class="dot"></span>' : '') + '</div>';
+  }
+  $('calGrid').innerHTML = html;
+}
+{
+  const now = new Date();
+  calY = now.getFullYear(); calM = now.getMonth();
+  $('calPrev').addEventListener('click', () => {
+    calM--; if (calM < 0) { calM = 11; calY--; } renderCal(); });
+  $('calNext').addEventListener('click', () => {
+    calM++; if (calM > 11) { calM = 0; calY++; } renderCal(); });
+  renderCal();
+}
+
+// ================================================================ 链 & 抽屉 & 印记
+
+const CHAINS = computeChains();
+if (CHAINS.length) {
+  $('chainsSec').style.display = 'block';
+  $('chains').innerHTML = CHAINS.map(c => `
+    <div class="chain">
+      <div class="cbeads">${c.path.join(' ⸺ ')}</div>
+      <div class="cname">${c.path.length} 珠${c.closed ? '环 · 花环' : '链'} · 由 ${c.edges} 串相接而成</div>
+    </div>`).join('');
+}
+
+function renderDrawers() {
+  const count = {};
+  for (const s of STR) {
+    const m = metaOf(s);
+    if (m) for (const w of (m.words || [])) count[w] = (count[w] || 0) + 1;
+  }
+  const words = Object.entries(count).sort((a, b) => b[1] - a[1]);
+  if (!words.length) { $('drawersSec').style.display = 'none'; return; }
+  $('drawersSec').style.display = 'block';
+  $('drawers').innerHTML = words.map(([w, n]) =>
+    `<div class="drawer ${wordFilt === w ? 'on' : ''}" data-w="${w}">${w}<b>${n}</b></div>`).join('');
+}
+$('drawers').addEventListener('click', (e) => {
+  const d = e.target.closest('.drawer');
+  if (!d) return;
+  wordFilt = wordFilt === d.dataset.w ? null : d.dataset.w;
+  renderDrawers();
+  renderStrands();
+});
+renderDrawers();
+
+{
+  const seals = [];
+  if (STR.length >= 1) seals.push('第一串');
+  if (STR.some(s => { const m = metaOf(s); return m && m.wall && isOT(m.wall[0][0]) !== isOT(m.wall[1][0]); }))
+    seals.push('跨约之线');
+  if (STR.some(s => { const m = metaOf(s); return m && m.votes >= 0 && m.votes < 2; }))
+    seals.push('深海采珠');
+  if (STR.some(s => { const m = metaOf(s); return m && (m.debate || m.votes < 0); }))
+    seals.push('自己判断');
+  if (CHAINS.some(c => c.path.length >= 3)) seals.push('三珠成链');
+  if (CHAINS.some(c => c.closed)) seals.push('花环');
+  $('seals').innerHTML = seals.map(t => `<span class="seal">${t}</span>`).join('');
+}
+
+// ================================================================ 星图（环形）
+
+function polar(cx, cy, r, deg) {
+  const rad = (deg - 90) * Math.PI / 180;
+  return [cx + r * Math.cos(rad), cy + r * Math.sin(rad)];
+}
+
+function drawSky() {
+  const svg = $('sky');
+  const C = 350, R = 272, W = 24;
+  const touched = new Set();
+  const lines = [];
+  for (const s of STR) {
+    const m = metaOf(s);
+    if (!m || !m.wall) continue;
+    touched.add(m.wall[0][0]); touched.add(m.wall[1][0]);
+    lines.push(m);
+  }
+
+  // 各卷起始角
+  let acc = 0;
+  const starts = BOOKS.map(([abbr, ch]) => { const s = acc; acc += ch; return s; });
+  const angleAt = (abbr, chNum) => {
+    const i = bookIdx(abbr);
+    return ((starts[i] + Math.min(chNum - 0.5, BOOKS[i][1])) / TOTAL_CH) * 360;
+  };
+
+  let html = `<defs>
+    <filter id="glow"><feGaussianBlur stdDeviation="2.2" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>`;
+
+  // 66 卷环
+  BOOKS.forEach(([abbr, ch], i) => {
+    const a0 = (starts[i] / TOTAL_CH) * 360 + 0.25;
+    const a1 = ((starts[i] + ch) / TOTAL_CH) * 360 - 0.25;
+    if (a1 <= a0) return;
+    const [x0, y0] = polar(C, C, R, a0);
+    const [x1, y1] = polar(C, C, R, a1);
+    const large = (a1 - a0) > 180 ? 1 : 0;
+    const lit = touched.has(abbr);
+    const base = i < OT_COUNT ? 'rgba(253,243,227,0.16)' : 'rgba(253,243,227,0.22)';
+    html += `<path d="M ${x0} ${y0} A ${R} ${R} 0 ${large} 1 ${x1} ${y1}"
+      fill="none" stroke="${lit ? 'rgba(245,205,138,0.75)' : base}" stroke-width="${W}">
+      <title>${abbr}（${ch} 章）</title></path>`;
+    // 大卷或被触卷标注
+    if (ch >= 15 || lit) {
+      const mid = (a0 + a1) / 2;
+      const [tx, ty] = polar(C, C, R + 26, mid);
+      html += `<text x="${tx}" y="${ty}" font-size="11" text-anchor="middle"
+        dominant-baseline="middle" fill="rgba(253,243,227,${lit ? 0.9 : 0.4})"
+        font-family="Georgia,serif">${abbr}</text>`;
+    }
+  });
+
+  // 光桥
+  for (const m of lines) {
+    const aA = angleAt(m.wall[0][0], m.wall[0][1]);
+    const aB = angleAt(m.wall[1][0], m.wall[1][1]);
+    const [x1, y1] = polar(C, C, R - W / 2 - 4, aA);
+    const [x2, y2] = polar(C, C, R - W / 2 - 4, aB);
+    const k = 0.22;
+    html += `<path d="M ${x1} ${y1} C ${C + (x1 - C) * k} ${C + (y1 - C) * k},
+      ${C + (x2 - C) * k} ${C + (y2 - C) * k}, ${x2} ${y2}"
+      fill="none" stroke="rgba(245,205,138,${(m.debate || m.votes < 0) ? 0.45 : 0.75})"
+      stroke-width="1.4" filter="url(#glow)"
+      ${(m.debate || m.votes < 0) ? 'stroke-dasharray="5 4"' : ''}/>`;
+    html += `<circle cx="${x1}" cy="${y1}" r="3" fill="#f5cd8a"/>
+             <circle cx="${x2}" cy="${y2}" r="3" fill="#f5cd8a"/>`;
+  }
+
+  svg.innerHTML = html;
+
+  const cross = lines.filter(m => isOT(m.wall[0][0]) !== isOT(m.wall[1][0])).length;
+  $('skyCap').textContent = STR.length
+    ? `你的线已触到 66 卷中的 ${touched.size} 卷 · 光桥 ${lines.length} 道，其中跨约 ${cross} 道（虚线为争议珠）`
+    : '星空还暗着。第一道光桥在等你。';
+}
+drawSky();
+
+// ================================================================ 视图切换
+
+$('tabW').addEventListener('click', () => {
+  $('tabW').classList.add('on'); $('tabS').classList.remove('on');
+  $('vWorkshop').style.display = 'block'; $('vSky').style.display = 'none';
+  $('pageTitle').textContent = '工 坊';
+});
+$('tabS').addEventListener('click', () => {
+  $('tabS').classList.add('on'); $('tabW').classList.remove('on');
+  $('vWorkshop').style.display = 'none'; $('vSky').style.display = 'block';
+  $('pageTitle').textContent = '星 图';
+});
+
+// ================================================================ 颗粒
+
+{
+  const g = $('grain'), gs = 140;
+  g.width = gs; g.height = gs;
+  g.style.width = '100vw'; g.style.height = '100vh';
+  g.style.imageRendering = 'pixelated';
+  const ctx = g.getContext('2d');
+  const re = () => {
+    const img = ctx.createImageData(gs, gs);
+    for (let i = 0; i < img.data.length; i += 4) {
+      const v = Math.random() * 255;
+      img.data[i] = img.data[i+1] = img.data[i+2] = v; img.data[i+3] = 255;
+    }
+    ctx.putImageData(img, 0, 0);
+  };
+  re(); setInterval(re, 120);
+}
+</script>
+<script src="../data/verses-1.js" async></script>
+<script src="../data/verses-2.js" async></script>
+<script src="../data/verses-3.js" async></script>
+<script src="account.js" defer></script>
+<script>if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(function () {});</script>
+</body>
+</html>

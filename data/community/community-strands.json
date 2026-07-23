@@ -1,0 +1,22 @@
+{
+ "dataset": "BeadString community strands (public notes)",
+ "homepage": "https://beadstring.app",
+ "source": "https://github.com/xiayuhkust/beadstring",
+ "license": "CC BY-SA 4.0",
+ "note": "User-contributed reasons on TSK cross-reference bead pairs. Only notes the author explicitly chose to publish. No user identifiers included. pair_key uses OSIS chapter codes for en/es/pt and Chinese Union Version abbreviations for zh.",
+ "exported_on": "2026-07-23",
+ "count": 1,
+ "strands": [
+  {
+   "pair_key": "Prov20|Rom12",
+   "refs": [
+    "Proverbs 20:22-23",
+    "Romans 12:17-19"
+   ],
+   "reason": "nice",
+   "lang": "en",
+   "strung_on": "2026-07-22",
+   "amens": 1
+  }
+ ]
+}

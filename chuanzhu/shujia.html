@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#1c1722">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<title>书架 · 串珠</title>
+<script>try{var _t=localStorage.getItem("chuanzhu_theme");if(_t!=="night"){document.documentElement.dataset.theme="huiben";var _m=document.querySelector('meta[name="theme-color"]');if(_m)_m.content="#a8ddec";}}catch(e){}</script>
+<link rel="stylesheet" href="tokens.css">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { min-height: 100%; }
+  body {
+    font-family: Georgia, "Times New Roman", "Songti SC", "宋体", serif;
+    color: #fdf3e3; -webkit-font-smoothing: antialiased;
+    user-select: none; -webkit-user-select: none;
+    background: linear-gradient(180deg, #1c1722 0%, #30252f 45%, #61443a 78%, #a3744f 100%);
+    background-attachment: fixed;
+    overflow-x: hidden;
+  }
+  #grain { position: fixed; inset: 0; pointer-events: none; opacity: 0.06;
+           mix-blend-mode: overlay; z-index: 40; }
+  #vignette { position: fixed; inset: 0; pointer-events: none; z-index: 30;
+    background: radial-gradient(ellipse at 50% 38%, transparent 52%, rgba(12,7,5,0.55) 100%); }
+
+  main { position: relative; z-index: 10; max-width: 720px; margin: 0 auto; padding: 0 20px 12vh; }
+  header { text-align: center; padding: 6vh 0 1vh; }
+  h1 { font-size: clamp(1.8rem, 6vw, 2.4rem); font-weight: normal;
+       letter-spacing: 0.5em; margin-left: 0.5em;
+       text-shadow: 0 2px 30px rgba(60,30,10,0.7); }
+  .cap { text-align: center; font-size: 0.72rem; letter-spacing: 0.2em;
+         opacity: 0.5; margin-top: 1em; line-height: 2.2; }
+  .cap a { color: #f5cd8a; }
+  h2 { font-size: 0.82rem; font-weight: normal; letter-spacing: 0.5em;
+       opacity: 0.55; margin: 2.6em 0 1.1em; text-align: center; }
+
+  /* 书架 */
+  #crumb { text-align: center; font-size: 0.8rem; letter-spacing: 0.2em; opacity: 0.7;
+    margin-bottom: 1.2em; min-height: 1.5em; }
+  #crumb span { cursor: pointer; color: #f5cd8a; border-bottom: 1px dashed rgba(245,205,138,0.4); }
+  #books { display: grid; grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); gap: 8px; }
+  .bk {
+    text-align: center; padding: 0.7em 0.2em; cursor: pointer;
+    background: rgba(18,12,9,0.5); border: 1px solid rgba(253,243,227,0.3);
+    border-radius: 10px; transition: border-color 0.3s;
+  }
+  .bk:hover { border-color: rgba(245,205,138,0.55); }
+  .bk .bn { font-size: 0.92rem; letter-spacing: 0.1em; }
+  .bk .bc { font-size: 0.62rem; opacity: 0.6; margin-top: 0.3em; }
+  .bk.nt .bn { color: #f0d9ae; }
+
+  #chapters { display: none; grid-template-columns: repeat(auto-fill, minmax(52px, 1fr)); gap: 6px; }
+  .chp { text-align: center; padding: 0.55em 0.2em; cursor: pointer;
+    background: rgba(18,12,9,0.5); border: 1px solid rgba(253,243,227,0.3);
+    border-radius: 8px; font-size: 0.8rem; }
+  .chp:hover { border-color: rgba(245,205,138,0.55); }
+  .chp .cc { display: block; font-size: 0.58rem; opacity: 0.6; margin-top: 0.25em; }
+
+  .foot { text-align: center; margin-top: 4em; }
+  .foot a { display: inline-block; color: #f5cd8a; text-decoration: none;
+    font-size: 0.82rem; margin: 0.3em 0.35em; letter-spacing: 0.25em; text-indent: 0.25em;
+    border: 1px solid rgba(245,205,138,0.7); border-radius: 2em;
+    padding: 0.55em 1.3em; background: rgba(245,205,138,0.1); }
+</style>
+<link rel="stylesheet" href="theme-huiben.css">
+</head>
+<body>
+  <a id="homeBtn" class="iconBtn" href="index.html" aria-label="回到主页"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 11.2 12 4l8.5 7.2"/><path d="M5.8 10v10h12.4V10"/></svg></a>
+  <canvas id="grain"></canvas>
+  <div id="vignette"></div>
+
+  <main>
+    <header>
+      <h1>书 架</h1>
+      <p class="cap" id="statLine">正在取来珠库……（首次约 5MB，请稍候）</p>
+    </header>
+
+    <h2>自 选 章</h2>
+    <p class="cap" style="margin-top:-0.4em">选一章 → 经文与串珠一同展开</p>
+    <div id="crumb">&nbsp;</div>
+    <div id="books"></div>
+    <div id="chapters"></div>
+
+    <p class="foot">
+      <a href="index.html">去 串 一 串</a>
+      <a href="dushu.html">读 经</a>
+      <a href="gongfang.html">我 的 工 坊</a>
+    </p>
+  </main>
+
+<script>
+// ================================================================ 基础（不依赖珠库，页面立即可见）
+
+const BOOKS = [
+  ['创',50],['出',40],['利',27],['民',36],['申',34],['书',24],['士',21],['得',4],
+  ['撒上',31],['撒下',24],['王上',22],['王下',25],['代上',29],['代下',36],['拉',10],
+  ['尼',13],['斯',10],['伯',42],['诗',150],['箴',31],['传',12],['歌',8],['赛',66],
+  ['耶',52],['哀',5],['结',48],['但',12],['何',14],['珥',3],['摩',9],['俄',1],
+  ['拿',4],['弥',7],['鸿',3],['哈',3],['番',3],['该',2],['亚',14],['玛',4],
+  ['太',28],['可',16],['路',24],['约',21],['徒',28],['罗',16],['林前',16],['林后',13],
+  ['加',6],['弗',6],['腓',4],['西',4],['帖前',5],['帖后',3],['提前',6],['提后',4],
+  ['多',3],['门',1],['来',13],['雅',5],['彼前',5],['彼后',3],['约壹',5],['约贰',1],
+  ['约叁',1],['犹',1],['启',22],
+];
+const OT_COUNT = 39;
+const $ = (id) => document.getElementById(id);
+
+function splitKey(k) {
+  const m = k.match(/^(\D+)(\d+)$/);
+  return [m[1], Number(m[2])];
+}
+// 分片就绪检测与组装
+function beadsReady() {
+  if (window.BEADS) return true;
+  if (window.__BP && window.__BP_TOTAL && window.__BP.length === window.__BP_TOTAL) {
+    window.BEADS = window.__BP.join(';').split(';').map(s => {
+      const p = s.split('|');
+      return [p[0], p[1], +p[2], +p[3], p[4], p[5]];
+    });
+    return true;
+  }
+  return false;
+}
+
+// 珠库索引（数据到位后填充）
+let READY = false;   // 珠库分片就绪
+const byChapter = {}, byBook = {};
+
+// ================================================================ 书架（先渲染骨架，数据到位后补计数）
+
+let curBook = null;
+
+function renderBooks() {
+  curBook = null;
+  $('crumb').innerHTML = '&nbsp;';
+  $('books').style.display = 'grid';
+  $('chapters').style.display = 'none';
+  $('books').innerHTML = BOOKS.map(([b], i) => `
+    <div class="bk ${i >= OT_COUNT ? 'nt' : ''}" data-b="${b}">
+      <div class="bn">${b}</div>
+      <div class="bc">${READY ? (byBook[b] || 0).toLocaleString() + ' 珠' : '…'}</div>
+    </div>`).join('');
+}
+
+function renderChapters(book) {
+  curBook = book;
+  const n = BOOKS.find(x => x[0] === book)[1];
+  $('crumb').innerHTML = `<span data-nav="books">全部书卷</span>　·　${book}`;
+  $('books').style.display = 'none';
+  const el = $('chapters');
+  el.style.display = 'grid';
+  el.innerHTML = Array.from({ length: n }, (_, i) => {
+    const c = i + 1;
+    const cnt = READY ? (byChapter[book + c] || []).length : '…';
+    return `<div class="chp" data-c="${c}">${c}<span class="cc">${cnt}</span></div>`;
+  }).join('');
+}
+
+$('books').addEventListener('click', (e) => {
+  const b = e.target.closest('.bk');
+  if (b) renderChapters(b.dataset.b);
+});
+// 点一章 → 以串珠模式读这一章（经文与珠一同展开）
+$('chapters').addEventListener('click', (e) => {
+  const c = e.target.closest('.chp');
+  if (c) location.href = 'dushu.html?bk=' + encodeURIComponent(curBook) +
+    '&ch=' + c.dataset.c + '&beads=1';
+});
+$('crumb').addEventListener('click', (e) => {
+  if (e.target.dataset.nav === 'books') renderBooks();
+});
+
+renderBooks();
+
+// ================================================================ 珠库就绪后的初始化
+
+function initData() {
+  for (const r of window.BEADS) {
+    (byChapter[r[0]] = byChapter[r[0]] || []).push(r);
+    (byChapter[r[1]] = byChapter[r[1]] || []).push(r);
+    const bA = splitKey(r[0])[0], bB = splitKey(r[1])[0];
+    byBook[bA] = (byBook[bA] || 0) + 1;
+    if (bB !== bA) byBook[bB] = (byBook[bB] || 0) + 1;
+  }
+  for (const k in byChapter) byChapter[k].sort((a, b) => b[2] - a[2]);
+  READY = true;
+  $('statLine').textContent =
+    `${window.BEADS.length.toLocaleString()} 颗章级珠 · 覆盖 66 卷 · 源自 TSK / OpenBible（CC-BY）`;
+  // 刷新当前视图的计数
+  if (curBook !== null) renderChapters(curBook);
+  else renderBooks();
+}
+
+{
+  const t0 = Date.now();
+  const t = setInterval(() => {
+    if (beadsReady()) { clearInterval(t); initData(); }
+    else if (Date.now() - t0 > 90000) {
+      clearInterval(t);
+      $('statLine').innerHTML =
+        '珠库加载失败——<a href="javascript:location.reload()">点此重试</a>';
+    }
+  }, 250);
+}
+
+// ================================================================ 颗粒
+
+{
+  const g = $('grain'), gs = 140;
+  g.width = gs; g.height = gs;
+  g.style.width = '100vw'; g.style.height = '100vh';
+  g.style.imageRendering = 'pixelated';
+  const ctx = g.getContext('2d');
+  const re = () => {
+    const img = ctx.createImageData(gs, gs);
+    for (let i = 0; i < img.data.length; i += 4) {
+      const v = Math.random() * 255;
+      img.data[i] = img.data[i+1] = img.data[i+2] = v; img.data[i+3] = 255;
+    }
+    ctx.putImageData(img, 0, 0);
+  };
+  re(); setInterval(re, 120);
+}
+</script>
+<script src="../data/beads-1.js" async></script>
+<script src="../data/beads-2.js" async></script>
+<script src="account.js" defer></script>
+<script>if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(function () {});</script>
+</body>
+</html>
