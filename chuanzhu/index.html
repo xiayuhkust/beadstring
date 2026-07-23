@@ -1334,7 +1334,7 @@ $('backBtn').addEventListener('click', () => go('sIntro'));
 function updateIntroCount() {
   const n = loadStrings().length;
   let text = n ? `你已串成 ${n} 串` :
-    '演示：四串低分珠（12 / 3 / 2 / 1 票）+ 一串争议珠（-5 票），可随意更换';
+    '珠库里有 142,079 颗珠——取一颗，开始吧';
   if (!breathNeed()) {
     const left = BREATH_COUNT - (breathState().count || 0);
     text += ` · 你在状态中，再串 ${left} 串后回到呼吸`;
