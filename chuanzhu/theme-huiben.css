@@ -210,3 +210,11 @@
 [data-theme="huiben"] .bmark.none::before { border-color: rgba(193,124,31,0.6); }
 [data-theme="huiben"] .bead.linkNew { color: #a2621c; background: none; box-shadow: none;
   border: 1px dashed rgba(193,124,31,0.6); }
+[data-theme="huiben"] .ctag { color: #2e7d64; border-color: rgba(46,125,100,0.45); }
+[data-theme="huiben"] .tline.comm, [data-theme="huiben"] .tline.comm:hover {
+  border-color: rgba(46,125,100,0.4); background: rgba(46,125,100,0.06); }
+[data-theme="huiben"] .chead { color: #2e7d64; }
+[data-theme="huiben"] .fbtn { background: none; box-shadow: none;
+  border: 1px solid rgba(90,61,34,0.35); }
+[data-theme="huiben"] .fbtn.on { border-color: #dd9b30; }
+[data-theme="huiben"] .fbtn.on[data-f="comm"] { border-color: rgba(46,125,100,0.7); }

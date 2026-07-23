@@ -144,9 +144,20 @@
     color: inherit; font-family: inherit; border-radius: 10px; padding: 0.5em 1em;
     margin: 0.45em 0 0; cursor: pointer; font-size: 0.8rem; letter-spacing: 0.05em; }
   .tline:hover { border-color: var(--gold-line); background: var(--card); }
-  .tline.comm { border-style: dashed; cursor: default; }
-  .ctag { font-size: 0.68em; color: #f5cd8a; opacity: 0.8; border: 1px solid rgba(245,205,138,0.4);
+  .tline.comm { border-style: dashed; cursor: default;
+    border-color: rgba(126,200,177,0.45); background: rgba(126,200,177,0.05); }
+  .tline.comm:hover { border-color: rgba(126,200,177,0.45); background: rgba(126,200,177,0.05); }
+  .ctag { font-size: 0.68em; color: #7ec8b1; opacity: 0.9; border: 1px solid rgba(126,200,177,0.5);
     border-radius: 2em; padding: 0.05em 0.6em; }
+  .chead { color: #7ec8b1; opacity: 0.8; }
+  .tflt { display: flex; gap: 0.5em; justify-content: center; margin: 0.8em 0 0.2em; }
+  .fbtn { font-family: inherit; font-size: 0.72rem; letter-spacing: 0.08em; padding: 0.28em 1em;
+    border-radius: 2em; background: none; color: inherit; opacity: 0.55;
+    border: 1px solid rgba(253,243,227,0.25); cursor: pointer; }
+  .fbtn.on { opacity: 1; border-color: rgba(245,205,138,0.7); }
+  .fbtn.on[data-f="comm"] { border-color: rgba(126,200,177,0.7); }
+  [data-flt="tsk"] .tline.comm, [data-flt="tsk"] .chead { display: none; }
+  [data-flt="comm"] .tline.tsk, [data-flt="comm"] .thint { display: none; }
   #knotNotes { max-width: 30em; margin: 0.4em auto 0; text-align: center; }
   .noteLink { background: none; border: none; cursor: pointer; font-family: inherit;
     color: #f5cd8a; opacity: 0.8; font-size: 0.78rem; letter-spacing: 0.05em;
@@ -959,9 +970,26 @@ function zhmapReady() {
     }
   });
 }
+
+// 线列表筛选：两类并存时出现
+function addFilter(box) {
+  if (box.querySelector('.tflt')) return;
+  box.dataset.flt = '';
+  box.insertAdjacentHTML('afterbegin',
+    '<div class="tflt">' +
+    '<button class="fbtn on" data-f="">全部</button>' +
+    '<button class="fbtn" data-f="tsk">TSK 原典</button>' +
+    '<button class="fbtn" data-f="comm">社区</button></div>');
+  box.querySelectorAll('.fbtn').forEach((b) => b.addEventListener('click', () => {
+    box.dataset.flt = b.dataset.f;
+    box.querySelectorAll('.fbtn').forEach((x) => x.classList.toggle('on', x === b));
+    box.querySelectorAll('.tpass').forEach((x) => x.remove());
+  }));
+}
 function renderTskList() {
   if (!S.pair || !S.pair.wall || S.pair.wall.length < 2 || S.pair.neg) return;
   const box = $('tskList');
+  box.dataset.flt = '';
   const zhA = S.pair.wall[0][0] + S.pair.wall[0][1];
   const zhB = S.pair.wall[1][0] + S.pair.wall[1][1];
   zhmapReady().then(() => {
@@ -972,11 +1000,11 @@ function renderTskList() {
     tskThreads(A, B).then(list => {
       if (!list.length || !S.pair || S.pair.wall[0][0] + S.pair.wall[0][1] !== zhA) return;
       box.innerHTML =
-        `<div class="hint" style="margin-top:0">这颗珠上的线 · TSK 共 ${list.length} 条</div>` +
+        `<div class="hint thint" style="margin-top:0">这颗珠上的线 · TSK 共 ${list.length} 条</div>` +
         list.slice(0, 24).map(r =>
-          `<button class="tline" data-a="${zhA}:${r[0]}" data-b="${zhB}:${r[1]}" data-v="${r[2]}">` +
+          `<button class="tline tsk" data-a="${zhA}:${r[0]}" data-b="${zhB}:${r[1]}" data-v="${r[2]}">` +
           `<span>${zhA}:${r[0]} ↔ ${zhB}:${r[1]}</span><span style="opacity:0.6">${r[2]}</span></button>`).join('') +
-        (list.length > 24 ? `<div class="hint">……还有 ${list.length - 24} 条</div>` : '');
+        (list.length > 24 ? `<div class="hint thint">……还有 ${list.length - 24} 条</div>` : '');
       box.style.display = '';
       box.querySelectorAll('.tline').forEach(el => el.addEventListener('click', () =>
         switchThread(el.dataset.a, el.dataset.b, +el.dataset.v || 0)));
@@ -986,9 +1014,12 @@ function renderTskList() {
           return q && window.TSK_ZH[q[1]] ? window.TSK_ZH[q[1]] + q[2] + ':' + q[3] : r; };
         window.cloudThreads([A, B].sort().join('|')).then((rows) => {
           if (rows && rows.length && S.pair && S.pair.wall[0][0] + S.pair.wall[0][1] === zhA) {
-            box.insertAdjacentHTML('beforeend', rows.map((r) =>
+            box.insertAdjacentHTML('beforeend',
+              '<div class="hint chead">社区新增 · ' + rows.length + ' 条</div>' +
+              rows.map((r) =>
               '<div class="tline comm"><span>' + zr(r.verse_a) + ' ↔ ' + zr(r.verse_b) +
               '</span><span class="ctag">社区</span></div>').join(''));
+            if (list.length) addFilter(box);
           }
         });
       }
